@@ -14,6 +14,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["functions/src/**/*.test.ts", "functions/src/**/*.spec.ts", "shared/**/*.test.ts", "client/src/**/*.test.ts"],
+    // node環境で回すサーバー/共有ロジックのテストのみ。
+    // クライアント（jsdom必須）の *.test.tsx は vitest.client.config.ts で実行する。
+    include: ["functions/src/**/*.test.ts", "functions/src/**/*.spec.ts", "shared/**/*.test.ts"],
   },
 });
