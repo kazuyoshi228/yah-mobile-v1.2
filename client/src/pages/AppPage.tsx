@@ -45,8 +45,9 @@ const FEATURE_KEYS = [
   { icon: "UserCircle", key: "account" },
 ] as const;
 
-// HERO background: MP4 video loop (desktop) / WebP image (mobile)
+// HERO background: MP4 video loop (desktop) / WebP image + lazy video (mobile)
 const HERO_VIDEO = ASSETS.HERO_VIDEO;
+const HERO_MOBILE_VIDEO = ASSETS.HERO_MOBILE_VIDEO;
 const HERO_MOBILE_IMG = ASSETS.HERO_MOBILE_IMG;
 const CITY_IMG = ASSETS.CITY_IMG;
 const NATURE_IMG = ASSETS.NATURE_IMG;
@@ -59,6 +60,22 @@ export default function AppPage() {
   const [drawerPlanId, setDrawerPlanId] = useState<string | undefined>(undefined);
   const [drawerInitialStep, setDrawerInitialStep] = useState<number | undefined>(undefined);
   const [drawerOrderId, setDrawerOrderId] = useState<string | undefined>(undefined);
+
+  // モバイルHERO動画: LCPを守るため画像を先に表示し、初回描画後に動画を遅延ロード→再生可能でフェードイン
+  const [loadMobileVideo, setLoadMobileVideo] = useState(false);
+  const [mobileVideoReady, setMobileVideoReady] = useState(false);
+  useEffect(() => {
+    if (!isMobile) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; // モーション抑制時は画像のまま
+    const start = () => setLoadMobileVideo(true);
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    if (ric) {
+      const id = ric(start, { timeout: 2000 });
+      return () => (window as unknown as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(id);
+    }
+    const tid = window.setTimeout(start, 1200);
+    return () => window.clearTimeout(tid);
+  }, [isMobile]);
 
   // JSON-LD Product Schema 用 — BaaSネイティブ: plansList Callable Function を廃止し Firestore 直接参照に移行（AP-04）
   const allPlansQuery = useMemo(
@@ -334,7 +351,7 @@ export default function AppPage() {
       <main id="main-content">
       {/* ─── HERO ─── */}
       <section className="relative h-screen min-h-[600px] flex items-end overflow-hidden bg-black">
-        {/* Mobile: static WebP image (faster LCP, no video overhead) */}
+        {/* Mobile: static WebP image (LCP) — 常に即表示 */}
         <img
           src={HERO_MOBILE_IMG}
           alt=""
@@ -343,6 +360,21 @@ export default function AppPage() {
           decoding="async"
           className="absolute inset-0 w-full h-full object-cover md:hidden"
         />
+        {/* Mobile: 縦動画を遅延ロードし、再生可能になったら画像の上にフェードイン */}
+        {loadMobileVideo && (
+          <video
+            src={HERO_MOBILE_VIDEO}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster={HERO_MOBILE_IMG}
+            aria-hidden="true"
+            onCanPlay={() => setMobileVideoReady(true)}
+            className={`absolute inset-0 w-full h-full object-cover md:hidden transition-opacity duration-700 ease-out ${mobileVideoReady ? "opacity-100" : "opacity-0"}`}
+          />
+        )}
         {/* Desktop: looping video */}
         <video
           src={HERO_VIDEO}

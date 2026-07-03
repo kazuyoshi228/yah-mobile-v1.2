@@ -11,7 +11,9 @@ const STORAGE_BASE =
 export const ASSETS = {
   /** ヒーロー動画（デスクトップ用ループ動画） */
   HERO_VIDEO: `${STORAGE_BASE}/assets/videos/yah_slur_10s.mp4`,
-  /** ヒーロー背景画像（モバイル用フォールバック） */
+  /** ヒーロー動画（モバイル用・縦1080×1920・軽量349KB／音声なし） */
+  HERO_MOBILE_VIDEO: `${STORAGE_BASE}/assets/videos/yah_slur_10s_mobile.mp4`,
+  /** ヒーロー背景画像（モバイル用フォールバック兼poster） */
   HERO_MOBILE_IMG: `${STORAGE_BASE}/assets/images/yah_mobile_HERO_v2.webp`,
   /** 都市イメージ（サービス紹介セクション） */
   CITY_IMG: `${STORAGE_BASE}/assets/images/thumb_09.webp`,
