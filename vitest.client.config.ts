@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
 import path from "path";
 
 const root = path.resolve(import.meta.dirname);
@@ -7,6 +8,7 @@ const root = path.resolve(import.meta.dirname);
 // 通常の `pnpm test`（vitest.config.ts, node環境）とは分離している。
 export default defineConfig({
   root,
+  plugins: [react()], // 自動 JSX ランタイム（React import 不要）
   resolve: {
     alias: {
       "@": path.resolve(root, "client", "src"),
