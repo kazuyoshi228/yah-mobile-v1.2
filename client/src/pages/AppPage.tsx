@@ -58,6 +58,9 @@ export default function AppPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPlanId, setDrawerPlanId] = useState<string | undefined>(undefined);
+  // プラン選択の引き継ぎ用（PlansSection選択／ログイン往復のURLパラメータから復元）
+  const [drawerInitialDays, setDrawerInitialDays] = useState<number | undefined>(undefined);
+  const [drawerInitialGb, setDrawerInitialGb] = useState<string | undefined>(undefined);
   const [drawerInitialStep, setDrawerInitialStep] = useState<number | undefined>(undefined);
   const [drawerOrderId, setDrawerOrderId] = useState<string | undefined>(undefined);
 
@@ -201,6 +204,11 @@ export default function AppPage() {
         window.history.replaceState(null, "", window.location.pathname + window.location.hash);
       } else if (planParam || openParam === "true") {
         if (planParam) setDrawerPlanId(planParam);
+        // days / gb を URL から直接復元（Firestore 読み込み前でも即時反映）
+        const daysParam = params.get("days");
+        const gbParam = params.get("gb");
+        if (daysParam) setDrawerInitialDays(parseInt(daysParam, 10));
+        if (gbParam) setDrawerInitialGb(gbParam);
         setDrawerInitialStep(undefined);
         setDrawerOpen(true);
         window.history.replaceState(null, "", window.location.pathname + window.location.hash);
@@ -336,6 +344,9 @@ export default function AppPage() {
 
   const openDrawer = (planId?: string) => {
     setDrawerPlanId(planId);
+    // プラン指定なし（HERO/CTAの汎用起動）は選択状態をクリアしてStep0から
+    setDrawerInitialDays(undefined);
+    setDrawerInitialGb(undefined);
     setDrawerOpen(true);
     if (planId) trackEvent("plan_select", { planId });
   };
@@ -346,7 +357,7 @@ export default function AppPage() {
     <div className="min-h-screen bg-white">
       <Nav />
       <Suspense fallback={null}>
-        <PurchaseDrawer open={drawerOpen} onOpenChange={setDrawerOpen} initialPlanId={drawerPlanId} initialStep={drawerInitialStep} initialOrderId={drawerOrderId} />
+        <PurchaseDrawer open={drawerOpen} onOpenChange={setDrawerOpen} initialPlanId={drawerPlanId} initialDays={drawerInitialDays} initialGb={drawerInitialGb} initialStep={drawerInitialStep} initialOrderId={drawerOrderId} />
       </Suspense>
 
       <main id="main-content">
@@ -572,9 +583,14 @@ export default function AppPage() {
 
       {/* ─── PLANS ─── */}
       <Suspense fallback={<div className="py-24 bg-white" />}>
-        <PlansSection onSelectPlan={(_days: number, _gb, _priceJpy, bappyPlanId) => {
+        <PlansSection onSelectPlan={(days: number, gb: string, _priceJpy, bappyPlanId) => {
           if (bappyPlanId) setDrawerPlanId(bappyPlanId);
+          // 選択済みの日数・GBを直接引き継ぐ（Firestore依存なしで即Step2表示）
+          setDrawerInitialDays(days);
+          setDrawerInitialGb(gb);
+          setDrawerInitialStep(undefined);
           setDrawerOpen(true);
+          trackEvent("plan_select", { planId: bappyPlanId, days, gb });
         }} />
       </Suspense>
 

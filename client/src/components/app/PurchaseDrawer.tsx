@@ -49,11 +49,13 @@ interface PurchaseDrawerProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   initialPlanId?: string;
+  initialDays?: number;   // 選択済み日数の直接引き継ぎ（Firestore依存なし）
+  initialGb?: string;     // 選択済みGB（例 "5GB"）の直接引き継ぎ
   initialStep?: number;
   initialOrderId?: string;
 }
 
-export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, initialStep, initialOrderId }: PurchaseDrawerProps) {
+export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, initialDays, initialGb, initialStep, initialOrderId }: PurchaseDrawerProps) {
   const { t } = useTranslation();
 
   // BaaSネイティブ: plansList Callable を廃止し Firestore 直接参照
@@ -78,8 +80,9 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
 
   const [step, setStep] = useState(0);
   const defaultDay = planDays[0] ?? 7;
-  const [drawerDays, setDrawerDays] = useState<number>(parsed.days ?? defaultDay);
-  const [drawerGb, setDrawerGb] = useState<string | null>(parsed.gb ?? null);
+  // initialDays/initialGb が直接渡された場合はそれを優先（parsePlanId は Firestore 読込後のみ有効）
+  const [drawerDays, setDrawerDays] = useState<number>(initialDays ?? parsed.days ?? defaultDay);
+  const [drawerGb, setDrawerGb] = useState<string | null>(initialGb ?? parsed.gb ?? null);
   const [esimOrderId, setEsimOrderId] = useState<string | undefined>(initialOrderId);
 
   // 通貨選択・価格フォーマット（レート購読を含む）
@@ -139,12 +142,24 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
 
   const drawerStepLabels: string[] = (t("drawer.stepLabels", { returnObjects: true }) as string[]);
 
+  // 初期プランから 日数・GB・開始ステップ を復元。
+  // initialDays/initialGb（PlansSection選択やログイン往復のURL由来）を最優先し、無ければ
+  // bappyPlanId から parsePlanId で復元（Firestore 読込後に有効）。
   useEffect(() => {
     const p = parsePlanId(initialPlanId, planOptions);
-    setDrawerDays(p.days ?? 7);
-    setDrawerGb(p.gb ?? null);
+    const days = initialDays ?? p.days ?? null;
+    const gb = initialGb ?? p.gb ?? null;
+    setDrawerDays(days ?? defaultDay);
+    setDrawerGb(gb);
+    // programmatic open では handleOpenChange が発火しないため、開いている間の開始ステップをここで担保。
+    // 明示ステップ指定（?buy=&step= や 決済完了=6）がある場合はそちらを優先。
+    if (open && initialStep === undefined) {
+      if (days && gb) setStep(2);
+      else if (days) setStep(1);
+      else setStep(0);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPlanId, sortedPlans]);
+  }, [open, initialPlanId, initialDays, initialGb, initialStep, sortedPlans]);
 
   const handleOpenChange = (v: boolean) => {
     if (v) {
@@ -154,8 +169,10 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
         return;
       }
       const p = parsePlanId(initialPlanId, planOptions);
-      if (p.days && p.gb) setStep(2);
-      else if (p.days) setStep(1);
+      const days = initialDays ?? p.days;
+      const gb = initialGb ?? p.gb;
+      if (days && gb) setStep(2);
+      else if (days) setStep(1);
       else setStep(0);
     }
     onOpenChange(v);

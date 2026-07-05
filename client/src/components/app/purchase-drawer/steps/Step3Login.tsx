@@ -4,7 +4,16 @@ import { usePurchaseDrawerCtx } from "../context";
 
 export function Step3Login() {
   const { t } = useTranslation();
-  const { loading, isAuthenticated, user, setStep, initialPlanId, currentOpt, drawerDays } = usePurchaseDrawerCtx();
+  const { loading, isAuthenticated, user, setStep, initialPlanId, currentOpt, drawerDays, drawerGb } = usePurchaseDrawerCtx();
+
+  // ログイン往復で選択プランが失われないよう、plan/days/gb を redirect URL に含める
+  const loginHref = (() => {
+    const p = new URLSearchParams({ open: "true" });
+    if (initialPlanId) p.set("plan", initialPlanId);
+    if (drawerDays) p.set("days", String(drawerDays));
+    if (drawerGb) p.set("gb", drawerGb);
+    return `/login?redirect=${encodeURIComponent(`/app?${p.toString()}`)}`;
+  })();
 
   return (
     <div>
@@ -65,7 +74,7 @@ export function Step3Login() {
             <p className="font-sans font-medium text-black text-[0.9375rem] mb-1">{t("drawer.signInWithAccount")}</p>
             <p className="font-sans text-black/45 text-[0.875rem] leading-[1.7] mb-6">{t("drawer.secureLogin")}</p>
             <a
-              href={`/login?redirect=${encodeURIComponent(initialPlanId ? `/app?open=true&plan=${encodeURIComponent(initialPlanId)}` : "/app?open=true")}`}
+              href={loginHref}
               className="flex items-center justify-center gap-3 w-full py-3.5 bg-black text-white hover:bg-black/80 transition-colors duration-200 active:scale-[0.97] text-center"
             >
               <span className="font-sans text-[0.875rem] font-medium tracking-[0.1em]">{t("drawer.signInBtn")}</span>
