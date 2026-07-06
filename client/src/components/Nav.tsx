@@ -53,18 +53,12 @@ function useNavHandler() {
 function AuthButton({
   isLight,
   isMobile,
-  dropdownRef,
-  dropdownOpen,
-  setDropdownOpen,
   initials,
   user,
   onLogout,
 }: {
   isLight: boolean;
   isMobile?: boolean;
-  dropdownRef?: React.RefObject<HTMLDivElement | null>;
-  dropdownOpen?: boolean;
-  setDropdownOpen?: (v: boolean) => void;
   initials: string;
   user: { name?: string | null; email?: string | null } | null;
   onLogout: () => void;
@@ -73,6 +67,23 @@ function AuthButton({
   const [location] = useLocation();
   // ページ遷移せずその場で Google ポップアップログイン（ブロック時のみ /login へフォールバック）
   const { handleLogin, pending } = useGoogleLogin({ fallbackHref: `/login?redirect=${encodeURIComponent(location)}` });
+
+  // アカウントメニュー（デスクトップ・モバイル共通で自己完結）。外側タップで閉じる。
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onOutside = (e: MouseEvent | TouchEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("touchstart", onOutside);
+    return () => {
+      document.removeEventListener("mousedown", onOutside);
+      document.removeEventListener("touchstart", onOutside);
+    };
+  }, []);
+  // ルート遷移時にメニューを閉じる
+  useEffect(() => { setDropdownOpen(false); }, [location]);
 
   const initialsBtn = (
     <div
@@ -105,53 +116,53 @@ function AuthButton({
   }
 
   return (
-    <div className={isMobile ? undefined : "relative"} ref={!isMobile ? dropdownRef : undefined}>
+    <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setDropdownOpen?.(!dropdownOpen)}
+        type="button"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
         className={`transition-opacity hover:opacity-70 ${isLight ? "text-black" : "text-white"}`}
         aria-label="Account menu"
+        aria-expanded={dropdownOpen}
       >
         {initialsBtn}
       </button>
 
-      {/* ドロップダウンはデスクトップのみ */}
-      {!isMobile && (
-        <AnimatePresence>
-          {dropdownOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.97 }}
-              transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-              className="absolute right-0 top-full mt-2 w-52 bg-white border border-[#D7D7D7] shadow-sm py-1"
-              style={{ transformOrigin: "top right" }}
-            >
-              <div className="px-4 py-3 border-b border-[#E8E8E8]">
-                <p className="font-sans text-black text-sm truncate">{user.name || "My Account"}</p>
-                {user.email && (
-                  <p className="font-sans text-black/40 text-[0.75rem] truncate mt-0.5">{user.email}</p>
-                )}
-              </div>
-              <Link href="/mypage">
-                <span
-                  onClick={() => setDropdownOpen?.(false)}
-                  className="font-sans w-full flex items-center gap-2.5 px-4 py-2.5 text-black/60 hover:text-black hover:bg-[#F7F7F7] transition-colors cursor-pointer text-[0.8125rem]"
-                >
-                  <ShoppingBag size={13} />
-                  {t("nav.myOrders")}
-                </span>
-              </Link>
-              <button
-                onClick={onLogout}
-                className="font-sans w-full flex items-center gap-2.5 px-4 py-2.5 text-black/60 hover:text-black hover:bg-[#F7F7F7] transition-colors text-left text-[0.8125rem]"
+      {/* アカウントメニュー（デスクトップ・モバイル共通） */}
+      <AnimatePresence>
+        {dropdownOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+            className="absolute right-0 top-full mt-2 w-52 bg-white border border-[#D7D7D7] shadow-lg py-1 z-50"
+            style={{ transformOrigin: "top right" }}
+          >
+            <div className="px-4 py-3 border-b border-[#E8E8E8]">
+              <p className="font-sans text-black text-sm truncate">{user.name || "My Account"}</p>
+              {user.email && (
+                <p className="font-sans text-black/40 text-[0.75rem] truncate mt-0.5">{user.email}</p>
+              )}
+            </div>
+            <Link href="/mypage">
+              <span
+                onClick={() => setDropdownOpen(false)}
+                className="font-sans w-full flex items-center gap-2.5 px-4 py-2.5 text-black/60 hover:text-black hover:bg-[#F7F7F7] transition-colors cursor-pointer text-[0.8125rem]"
               >
-                <LogOut size={13} />
-                {t("nav.signOut")}
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+                <ShoppingBag size={13} />
+                {t("nav.myOrders")}
+              </span>
+            </Link>
+            <button
+              onClick={onLogout}
+              className="font-sans w-full flex items-center gap-2.5 px-4 py-2.5 text-black/60 hover:text-black hover:bg-[#F7F7F7] transition-colors text-left text-[0.8125rem]"
+            >
+              <LogOut size={13} />
+              {t("nav.signOut")}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -163,8 +174,6 @@ export default function Nav() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, loading, isAuthenticated, logout } = useAuth();
   const handleNavClick = useNavHandler();
@@ -186,20 +195,10 @@ export default function Nav() {
 
   useEffect(() => { setMenuOpen(false); }, [location]);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const isDarkHero = location === "/app" || location === "/" || location.startsWith("/app/");
   const isLight = scrolled || !isDarkHero;
 
-  const handleLogout = async () => { setDropdownOpen(false); await logout(); };
+  const handleLogout = async () => { await logout(); };
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -238,14 +237,7 @@ export default function Nav() {
                 {link.label}
               </button>
             ))}
-            {!loading && (
-              <AuthButton
-                {...authProps}
-                dropdownRef={dropdownRef}
-                dropdownOpen={dropdownOpen}
-                setDropdownOpen={setDropdownOpen}
-              />
-            )}
+            {!loading && <AuthButton {...authProps} />}
             <LanguageSwitcher />
           </nav>
 
