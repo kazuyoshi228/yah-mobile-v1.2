@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { DrawerClose } from "@/components/ui/drawer";
 import { safeUrl } from "@/lib/utils";
+import { EsimQr } from "@/components/EsimQr";
 import { usePurchaseDrawerCtx } from "../context";
 
 export function Step6Esim() {
@@ -24,9 +25,9 @@ export function Step6Esim() {
           <h2 className="font-sans font-light text-black mb-1 text-[1.5rem] leading-[1.15] tracking-[-0.02em]">{t("drawer.esimReadyTitle", "Your eSIM is ready.")}</h2>
           <p className="font-sans text-black/50 mb-8 text-[0.875rem] leading-[1.7]">{t("drawer.esimReadyDesc", "Scan the QR code with your phone to activate.")}</p>
           <div className="flex justify-center mb-6">
-            <div className="border border-[#D7D7D7] p-4 inline-block">
-              {esimLink.qrCodeUrl ? (
-                <img src={safeUrl(esimLink.qrCodeUrl)} alt="QR Code" className="w-[220px] h-[220px]" />
+            <div className="border border-[#D7D7D7] p-4 inline-block bg-white">
+              {esimLink.lpaProfile ? (
+                <EsimQr value={esimLink.lpaProfile} size={220} className="w-[220px] h-[220px]" />
               ) : (
                 <div className="w-[220px] h-[220px] flex items-center justify-center bg-black/5">
                   <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />

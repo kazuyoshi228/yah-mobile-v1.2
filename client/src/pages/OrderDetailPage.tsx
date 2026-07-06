@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { Spinner } from "@/components/ui/spinner";
 import { StatusBadge } from "@/components/StatusBadge";
 import { deriveEsimStatus } from "@/components/mypage/esimStatus";
+import { EsimQr } from "@/components/EsimQr";
 
 import { DataUsageBar } from "@/components/DataUsageBar";
 
@@ -229,20 +230,13 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   <div>
                     <p className="text-label text-[0.6875rem] text-black/40 mb-4">QR Code (Manual Scan)</p>
                     <div className="flex flex-col sm:flex-row gap-6 items-start">
-                      {esimLink.qrCodeUrl ? (
-                        <motion.img
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          src={safeUrl(esimLink.qrCodeUrl)}
-                          alt="QR Code"
-                          className="w-48 h-48 sm:w-60 sm:h-60 rounded-[1.2rem] shadow-sm bg-white shrink-0"
-                        />
-                      ) : (
-                        <div className="w-48 h-48 sm:w-60 sm:h-60 bg-black/5 rounded-[1.2rem] flex flex-col items-center justify-center gap-3 shrink-0">
-                          <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                          <p className="font-sans text-black/40 text-[0.65rem]">Generating QR...</p>
-                        </div>
-                      )}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="w-48 h-48 sm:w-60 sm:h-60 rounded-[1.2rem] shadow-sm bg-white shrink-0 p-3 flex items-center justify-center"
+                      >
+                        <EsimQr value={esimLink.lpaProfile} size={240} className="w-full h-full" />
+                      </motion.div>
                       <div className="flex-1">
                         <p className="font-sans text-black/40 text-xs mb-3 leading-[1.7]">
                           Open <strong>Settings → Mobile Data → Add eSIM</strong> and scan this QR code, or tap the activation button above.
