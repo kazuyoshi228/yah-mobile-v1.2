@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { PlanOption } from "../types";
 import type { FsUser } from "@shared/userTypes";
+import type { FsEsimLink } from "@shared/types";
 
 /** PurchaseDrawer の各ステップ部品が共有する状態・派生値・コールバック */
 export interface PurchaseDrawerCtx {
@@ -31,8 +32,7 @@ export interface PurchaseDrawerCtx {
   initialPlanId?: string;
 
   // eSIM（step 6）
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  esimLink: any;
+  esimLink: FsEsimLink | null;
   esimLoading: boolean;
 
   // 同意・決済（step 4）

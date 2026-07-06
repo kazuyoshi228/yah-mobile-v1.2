@@ -13,6 +13,7 @@ import { deriveEsimStatus } from "@/components/mypage/esimStatus";
 import { EsimQr } from "@/components/EsimQr";
 
 import { DataUsageBar } from "@/components/DataUsageBar";
+import type { FsOrder, FsEsimLink } from "../../../shared/types";
 
 function detectDevice(): "ios" | "android" | "other" {
   if (typeof window === "undefined") return "other";
@@ -30,26 +31,26 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const device = detectDevice();
 
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<FsOrder | null>(null);
   const [orderLoading, setOrderLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     const unsub = onSnapshot(doc(getFirebaseDb(), "orders", orderId), (snap) => {
-      setOrder(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+      setOrder(snap.exists() ? ({ id: snap.id, ...snap.data() } as FsOrder) : null);
       setOrderLoading(false);
     });
     return unsub;
   }, [orderId, isAuthenticated]);
 
-  const [esimLink, setEsimLink] = useState<any>(null);
+  const [esimLink, setEsimLink] = useState<FsEsimLink | null>(null);
   const [esimLoading, setEsimLoading] = useState(true);
 
   useEffect(() => {
     if (!order) return;
     const q = query(collection(getFirebaseDb(), "esim_links"), where("orderId", "==", orderId));
     const unsub = onSnapshot(q, (snap: QuerySnapshot<DocumentData>) => {
-      setEsimLink(snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() });
+      setEsimLink(snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as FsEsimLink));
       setEsimLoading(false);
     });
     return unsub;
@@ -58,7 +59,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   // 期限「常に表示」用：未有効化時は plan.validityDays を表示するため注文の planId から取得
   const [validityDays, setValidityDays] = useState<number | null>(null);
   useEffect(() => {
-    const planId = (order as unknown as { planId?: string } | null)?.planId;
+    const planId = order?.planId;
     if (!planId) { setValidityDays(null); return; }
     getDoc(doc(getFirebaseDb(), "plans", planId))
       .then((snap) => setValidityDays(snap.exists() ? ((snap.data() as { validityDays?: number }).validityDays ?? null) : null))
@@ -76,7 +77,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
         updatedAt: serverTimestamp(),
       });
       setSyncResult({ synced: true });
-    } catch (err: any) {
+    } catch (err) {
       console.error("[handleSync] Failed to request eSIM sync:", err);
     } finally {
       setIsSyncing(false);

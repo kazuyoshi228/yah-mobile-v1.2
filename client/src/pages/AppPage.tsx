@@ -86,7 +86,7 @@ export default function AppPage() {
     () => query(collection(getFirebaseDb(), "plans"), where("isActive", "==", true), where("planType", "==", "initial")),
     []
   );
-  const { data: allDbPlans = [] } = useFirestoreCollection<any>(() => allPlansQuery, [allPlansQuery], { realtime: false });
+  const { data: allDbPlans = [] } = useFirestoreCollection<FsPlan>(() => allPlansQuery, [allPlansQuery], { realtime: false });
 
   // Parse ?buy=planId&step=N to open PurchaseDrawer directly
   useEffect(() => {

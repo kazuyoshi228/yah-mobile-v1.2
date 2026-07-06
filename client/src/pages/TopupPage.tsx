@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { Spinner } from "@/components/ui/spinner";
 import { callFunction } from "@/lib/callable";
 import { CALLABLE } from "@/lib/callable";
+import type { FsEsimLink, FsPlan } from "../../../shared/types";
 
 
 export default function TopupPage({ params }: { params: { esimLinkId: string } }) {
@@ -20,21 +21,21 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
 
-  const [esimLink, setEsimLink] = useState<any>(null);
+  const [esimLink, setEsimLink] = useState<FsEsimLink | null>(null);
   const [esimLoading, setEsimLoading] = useState(true);
 
   // eSIM取得
   useEffect(() => {
     if (!isAuthenticated) return;
     const unsub = onSnapshot(doc(getFirebaseDb(), "esim_links", esimLinkId), (snap) => {
-      setEsimLink(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+      setEsimLink(snap.exists() ? ({ id: snap.id, ...snap.data() } as FsEsimLink) : null);
       setEsimLoading(false);
     });
     return unsub;
   }, [esimLinkId, isAuthenticated]);
 
   // トップアッププラン取得 (Firestoreから直接)
-  const [plans, setPlans] = useState<any[] | null>(null);
+  const [plans, setPlans] = useState<FsPlan[] | null>(null);
   const [plansLoading, setPlansLoading] = useState(true);
 
   useEffect(() => {
@@ -45,21 +46,22 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
       orderBy("sortOrder", "asc") // Needs index? Will handle if index error
     );
     const unsub = onSnapshot(q, (snap) => {
-      setPlans(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setPlans(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }) as FsPlan));
       setPlansLoading(false);
     }, (error) => {
       console.error("Failed to fetch topup plans", error);
       // Fallback without sortOrder if index is missing
       const qFallback = query(collection(getFirebaseDb(), "plans"), where("planType", "==", "topup"), where("isActive", "==", true));
       onSnapshot(qFallback, (snapFb) => {
-        setPlans(snapFb.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setPlans(snapFb.docs.map(doc => ({ id: doc.id, ...doc.data() }) as FsPlan));
         setPlansLoading(false);
       });
     });
     return unsub;
   }, []);
 
-  const handleBuy = useCallback(async (plan: any) => {
+  const handleBuy = useCallback(async (plan: FsPlan) => {
+    if (!esimLink) return;
     setCheckoutError(null);
     setIsPurchasing(true);
     setPurchasingPlanId(plan.id); // this is firestore plan doc id
@@ -83,7 +85,7 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
       } else {
         throw new Error("Invalid checkout URL returned.");
       }
-    } catch (err: any) {
+    } catch {
       setCheckoutError(t("common.paymentFailed"));
       setIsPurchasing(false);
       setPurchasingPlanId(null);
@@ -152,7 +154,7 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
                 <p className="font-sans text-black/30 text-sm">No top-up plans available.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-4">
-                  {plans.map((plan: any) => {
+                  {plans.map((plan) => {
                     const isProcessing = isPurchasing && purchasingPlanId === plan.id;
                     return (
                       <div

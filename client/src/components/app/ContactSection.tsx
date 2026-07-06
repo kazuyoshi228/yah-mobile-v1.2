@@ -114,8 +114,8 @@ export default function ContactSection() {
       requestAnimationFrame(() => {
         sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
-    } catch (err: any) {
-      setFormError(err.message || "Failed to send. Please try again.");
+    } catch (err) {
+      setFormError((err instanceof Error ? err.message : "") || "Failed to send. Please try again.");
     } finally {
       setIsPending(false);
     }

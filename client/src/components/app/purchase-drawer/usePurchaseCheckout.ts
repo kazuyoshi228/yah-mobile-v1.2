@@ -61,8 +61,9 @@ export function usePurchaseCheckout(currentOpt: PlanOption | null, user: Checkou
         setPurchaseError(t("drawer.paymentError", "Payment initialization failed. Please try again."));
         setIsPurchasing(false);
       }
-    } catch (err: any) {
-      if (err?.code === "permission-denied" || err?.message?.includes("permission-denied")) {
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
+      if (e?.code === "permission-denied" || e?.message?.includes("permission-denied")) {
         // Verify if the email is actually allowed
         try {
           if (user?.email) {

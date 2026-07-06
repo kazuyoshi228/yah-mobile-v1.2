@@ -48,7 +48,7 @@ export function ProfileSection() {
       setEditing(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (e: any) {
+    } catch {
       setError(t("common.saveFailed"));
     } finally {
       setIsSaving(false);

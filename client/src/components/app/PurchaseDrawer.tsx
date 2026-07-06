@@ -43,7 +43,7 @@ import { Step3Login } from "./purchase-drawer/steps/Step3Login";
 import { Step4Payment } from "./purchase-drawer/steps/Step4Payment";
 import { Step5Complete } from "./purchase-drawer/steps/Step5Complete";
 import { Step6Esim } from "./purchase-drawer/steps/Step6Esim";
-import type { FsPlan } from "../../../../shared/types";
+import type { FsPlan, FsEsimLink, FsOrder } from "../../../../shared/types";
 
 interface PurchaseDrawerProps {
   open: boolean;
@@ -64,9 +64,9 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
     () => query(collection(getFirebaseDb(), "plans"), where("isActive", "==", true), where("planType", "==", "initial")),
     []
   );
-  const { data: dbPlans = [] } = useFirestoreCollection<any>(() => plansQuery, [plansQuery], { realtime: false });
+  const { data: dbPlans = [] } = useFirestoreCollection<FsPlan>(() => plansQuery, [plansQuery], { realtime: false });
   const sortedPlans = useMemo(() => {
-    return [...dbPlans].sort((a: any, b: any) => {
+    return [...dbPlans].sort((a, b) => {
       const aVal = a.sortOrder !== undefined ? a.sortOrder : (a.createdAt || 0);
       const bVal = b.sortOrder !== undefined ? b.sortOrder : (b.createdAt || 0);
       return aVal - bVal;
@@ -107,7 +107,7 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
       : null,
     [esimOrderId]
   );
-  const { data: esimLinks, isLoading: esimLoading } = useFirestoreCollection<any>(
+  const { data: esimLinks, isLoading: esimLoading } = useFirestoreCollection<FsEsimLink>(
     () => esimQuery!,
     [esimQuery],
     { realtime: true, enabled: isAuthenticated && step === 6 && esimOrderId !== undefined && esimQuery !== null }
@@ -119,7 +119,7 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
     () => user ? query(collection(getFirebaseDb(), "orders"), where("userId", "==", user.uid), orderBy("createdAt", "desc"), limit(1)) : null,
     [user]
   );
-  const { data: lastOrders } = useFirestoreCollection<any>(
+  const { data: lastOrders } = useFirestoreCollection<FsOrder>(
     () => lastOrderQuery!,
     [lastOrderQuery],
     { realtime: false, enabled: isAuthenticated && lastOrderQuery !== null }

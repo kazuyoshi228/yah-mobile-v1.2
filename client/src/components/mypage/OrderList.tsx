@@ -33,7 +33,7 @@ function OrderCard({
       );
       toast("Redirecting to payment...");
       window.location.href = result.checkoutUrl;
-    } catch (err: any) {
+    } catch {
       toast.error(t("common.paymentFailed"));
     } finally {
       setIsRetrying(false);
