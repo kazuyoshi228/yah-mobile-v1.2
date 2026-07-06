@@ -124,7 +124,9 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     year: "numeric", month: "long", day: "numeric",
   });
   const expiryDisplay = esimLink?.expiryDate
-    ? new Date(esimLink.expiryDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+    ? new Date(esimLink.expiryDate).toLocaleString("en-US", {
+        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })
     : null;
   const activatedDisplay = esimLink?.lastActiveAt
     ? new Date(esimLink.lastActiveAt).toLocaleString("en-US", {

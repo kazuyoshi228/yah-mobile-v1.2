@@ -83,3 +83,18 @@ export function deriveEsimStatus(esim: {
 
 ## 承認のお願い
 上記（2系統ステータス／`deriveEsimStatus`／表示更新／`fulfilled`→Completed／Need Top-up 閾値10%）で実装してよろしいでしょうか？ 承認後に着手します。
+
+---
+
+## 追記（2026-07-06）：Expire を「日時（時刻付き）」で表示
+
+**背景**：`Expires` が現状は日付のみ（`toLocaleDateString`）。ユーザー要望で**時刻も**表示したい。
+
+**実コード確認**：`expiryDate` は Unix ms（number）または ISO 文字列で保存され、**いずれも時刻情報を持つ**（`esimRetryService.ts:197`＝`getTime()`、`bappy/links.ts`＝`toISOString()`）。→ 時刻表示は有意（真夜中固定にならない）。
+
+**変更（2箇所・書式のみ）**：`Activated` と同じ日時書式に統一する。
+- `ActiveEsimSummary.tsx` の `expiryDisplay`：`toLocaleDateString(...)` → `toLocaleString("en-US", { year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" })`
+- `OrderDetailPage.tsx` の `expiryDisplay`：同上に変更
+
+**リスク**：極小（表示書式のみ・ロジック不変）。`expiryDate` が万一日付のみのデータでも `00:00 AM` 表記になるだけで壊れない。
+**検証**：型チェック＋既存テスト＋dev で `Expires <日時>` 表示確認。

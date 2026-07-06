@@ -23,7 +23,9 @@ export function ActiveEsimSummary({
   const device = detectDevice();
   const esimStatus = deriveEsimStatus(esimLink);
   const expiryDisplay = esimLink.expiryDate
-    ? new Date(esimLink.expiryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    ? new Date(esimLink.expiryDate).toLocaleString("en-US", {
+        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })
     : null;
   const activatedDisplay = esimLink.lastActiveAt
     ? new Date(esimLink.lastActiveAt).toLocaleString("en-US", {
