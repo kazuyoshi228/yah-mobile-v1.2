@@ -12,6 +12,7 @@ export type EsimLink = {
   dataTotalMb: number | null;
   expiryDate: Date | string | null;
   status: string | null;
+  lastActiveAt?: number | null;
 };
 
 export type OrderRow = {

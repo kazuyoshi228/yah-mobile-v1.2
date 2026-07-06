@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { safeUrl } from "@/lib/utils";
 import type { EsimLink } from "./types";
+import { deriveEsimStatus } from "./esimStatus";
 
 function detectDevice(): "ios" | "android" | "other" {
   const ua = navigator.userAgent.toLowerCase();
@@ -20,8 +21,14 @@ export function ActiveEsimSummary({
   onViewDetail: () => void;
 }) {
   const device = detectDevice();
+  const esimStatus = deriveEsimStatus(esimLink);
   const expiryDisplay = esimLink.expiryDate
     ? new Date(esimLink.expiryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
+  const activatedDisplay = esimLink.lastActiveAt
+    ? new Date(esimLink.lastActiveAt).toLocaleString("en-US", {
+        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })
     : null;
 
   const activationUrl = safeUrl(
@@ -38,20 +45,23 @@ export function ActiveEsimSummary({
     >
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <p className="text-label text-[0.6rem] text-white/40 mb-2">ACTIVE eSIM</p>
+          <p className="text-label text-[0.6rem] text-white/40 mb-2">YOUR eSIM</p>
           <p className="font-sans font-medium text-white text-lg leading-tight">
             {planName ?? "eSIM Ready"}
           </p>
           {esimLink.iccid && (
             <p className="font-sans text-white/30 text-xs mt-0.5 font-mono">{esimLink.iccid}</p>
           )}
+          {activatedDisplay && (
+            <p className="font-sans text-white/40 text-xs mt-1">Activated {activatedDisplay}</p>
+          )}
           {expiryDisplay && (
             <p className="font-sans text-white/40 text-xs mt-1">Expires {expiryDisplay}</p>
           )}
         </div>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/10 text-white text-[0.6rem] font-sans font-medium tracking-[0.15em] uppercase">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          Active
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/10 text-white text-[0.6rem] font-sans font-medium tracking-[0.15em] uppercase whitespace-nowrap">
+          <span className={`w-1.5 h-1.5 rounded-full ${esimStatus.dotClass} ${esimStatus.pulse ? "animate-pulse" : ""}`} />
+          {esimStatus.label}
         </span>
       </div>
 
@@ -72,6 +82,12 @@ export function ActiveEsimSummary({
             />
           </div>
         </div>
+      )}
+
+      {esimStatus.key === "topup" && (
+        <p className="font-sans text-orange-300/90 text-xs mb-4">
+          Data running low — top up to keep browsing.
+        </p>
       )}
 
       <div className="flex flex-wrap gap-3">

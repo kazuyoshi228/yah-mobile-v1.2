@@ -9,6 +9,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { Spinner } from "@/components/ui/spinner";
 import { StatusBadge } from "@/components/StatusBadge";
+import { deriveEsimStatus } from "@/components/mypage/esimStatus";
 
 import { DataUsageBar } from "@/components/DataUsageBar";
 
@@ -125,13 +126,21 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const expiryDisplay = esimLink?.expiryDate
     ? new Date(esimLink.expiryDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
     : null;
+  const activatedDisplay = esimLink?.lastActiveAt
+    ? new Date(esimLink.lastActiveAt).toLocaleString("en-US", {
+        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })
+    : null;
+  const esimStatus = esimLink ? deriveEsimStatus(esimLink) : null;
 
   const rows = [
     { label: "Plan",       value: order.planName ?? "Japan eSIM" },
     { label: "Amount",     value: `¥${order.amountJpy?.toLocaleString()}` },
     { label: "Status",     value: <StatusBadge status={order.status} /> },
     { label: "Order Date", value: date },
+    ...(esimStatus ? [{ label: "eSIM Status", value: esimStatus.label }] : []),
     ...(esimLink?.iccid ? [{ label: "ICCID", value: esimLink.iccid }] : []),
+    ...(activatedDisplay ? [{ label: "Activated", value: activatedDisplay }] : []),
     ...(expiryDisplay ? [{ label: "Expires", value: expiryDisplay }] : []),
   ];
 
