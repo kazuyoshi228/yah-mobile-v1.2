@@ -298,6 +298,7 @@ const th = {
     loginConsentSuffix: "ของเรา",
   },
   mypage: {
+    refundedInfo: "คืนเงินแล้ว",
     notifications: {
       title: "การแจ้งเตือน",
       empty: "ไม่มีการแจ้งเตือนใหม่",

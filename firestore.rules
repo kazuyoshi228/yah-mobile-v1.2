@@ -215,6 +215,12 @@ service cloud.firestore {
     }
 
     // ─── System collections (Cloud Functions only) ───────────────────────────────
+    // system_config/refunds は /admin 返金タブの「自動返金ON/OFF」トグルが読み書きする。
+    // 関数側は Admin SDK で読む（ルール素通り）。顧客には非公開（admin限定）。
+    match /system_config/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     match /bappy_token_cache/{docId} {
       allow read, write: if false;
     }

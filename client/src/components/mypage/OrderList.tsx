@@ -88,6 +88,16 @@ function OrderCard({
         </div>
       )}
 
+      {/* 返金済み注文の表示（当社側エラー等で返金された注文の恒久記録） */}
+      {order.status === "refunded" && (
+        <div className="mt-4 pt-4 border-t border-black/5">
+          <p className="font-sans text-emerald-700 text-xs">
+            {t("mypage.refundedInfo", "Refunded")} ¥{order.amountJpy?.toLocaleString() ?? ""}
+            {order.refundedAt ? ` · ${new Date(order.refundedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}
+          </p>
+        </div>
+      )}
+
       {/* pending注文の再決済ボタン */}
       {order.status === "pending" && (
         <div className="mt-4 pt-4 border-t border-black/5" onClick={(e) => e.stopPropagation()}>

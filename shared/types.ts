@@ -93,6 +93,15 @@ export interface FsOrder {
   userEmail?: string | null;
   userName?: string | null;
   discountPercentage?: number | null;
+  /** 購入時のUI言語（i18n.language）。返金/通知メールの言語判定に使う。未設定は en 扱い。 */
+  language?: string | null;
+  /** 返金状態。返金の実行/確定は Stripe charge.refunded webhook を真実源とする。 */
+  refundStatus?: "none" | "processing" | "refunded" | "failed" | null;
+  stripeRefundId?: string | null;
+  /** 返金理由。"system_failure"（Lane A自動）/ "manual"（Lane B）等。 */
+  refundReason?: string | null;
+  /** 返金確定時刻（epoch ms）。 */
+  refundedAt?: number | null;
   createdAt: number;
   updatedAt: number;
 }

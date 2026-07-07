@@ -3,7 +3,7 @@
  */
 
 export type InquiryStatus = "pending" | "in_progress" | "resolved" | "closed";
-export type AdminTab = "ai_first" | "analytics" | "orders" | "inquiries" | "plans" | "competitorPlans" | "access" | "incident" | "communication";
+export type AdminTab = "ai_first" | "analytics" | "orders" | "inquiries" | "plans" | "competitorPlans" | "access" | "incident" | "communication" | "refunds";
 export type Period = "24h" | "7d" | "30d" | "90d";
 
 export const PERIOD_OPTIONS: { value: Period; label: string }[] = [

@@ -79,7 +79,7 @@ export async function generateLlmsTxt(): Promise<string> {
 - **Coverage**: All of Japan (KDDI network — 4G/LTE)
 - **Delivery**: Instant QR code via email after purchase
 - **Activation**: Scan QR code before or after arriving in Japan
-- **Refund policy**: eSIM is a digital product. Once payment is completed, cancellations and refunds are not available. Customers confirm this policy via a checkbox before completing purchase.
+- **Refund policy**: eSIM is a digital product. Once payment is completed, cancellations and refunds are not available, except where we are unable to deliver the eSIM or top-up due to a technical problem on our side (a system error or an upstream provider failure) — in that case the payment is refunded in full, automatically, to the original payment method. Customers confirm this policy via a checkbox before completing purchase.
 - **Support**: Live chat available on the website
 - **Network**: KDDI (au) — Japan's second-largest carrier, excellent nationwide coverage
 
@@ -124,7 +124,7 @@ Yes. The eSIM works alongside your existing physical SIM. You can switch between
 Top-up plans are available. Contact support via live chat on the website.
 
 **Is there a refund policy?**
-eSIM is a digital product. Once payment is completed, cancellations and refunds are not available. Customers confirm this no-refund policy via a checkbox before completing their purchase, as required under Japan's Act on Specified Commercial Transactions (Article 15-3). If you have questions, please contact support via live chat before purchasing.
+eSIM is a digital product. Once payment is completed, cancellations and refunds are not available. Customers confirm this no-refund policy via a checkbox before completing their purchase, as required under Japan's Act on Specified Commercial Transactions (Article 15-3). The only exception is when we are unable to deliver your eSIM or top-up due to a technical problem on our side — in that case we refund your payment in full, automatically, to your original payment method. If you have questions, please contact support via live chat before purchasing.
 
 **Can I use tethering (hotspot)?**
 Yes. Tethering and mobile hotspot are fully supported. You can share your Japan data connection with laptops, tablets, or other devices.

@@ -371,6 +371,7 @@ const zhTW = {
     "loginConsentSuffix": "。"
   },
   "mypage": {
+    "refundedInfo": "已退款",
     "notifications": {
       "title": "通知",
       "empty": "沒有新通知",

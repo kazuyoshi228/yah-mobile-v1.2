@@ -280,6 +280,7 @@ const zhCN = {
     refundConsentRequired: "请同意不可退款政策以继续支付。",
   },
   mypage: {
+    refundedInfo: "已退款",
     notifications: {
       title: "通知",
       empty: "暂无新通知",

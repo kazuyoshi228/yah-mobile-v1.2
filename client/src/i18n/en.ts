@@ -298,6 +298,7 @@ const en = {
     loginConsentSuffix: ".",
   },
   mypage: {
+    refundedInfo: "Refunded",
     notifications: {
       title: "Notifications",
       empty: "No new notifications",

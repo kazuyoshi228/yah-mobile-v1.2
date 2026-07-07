@@ -55,6 +55,7 @@ export const OrdersInitCheckoutInput = z.object({
   privacyConsented: z.boolean(),
   marketingConsented: z.boolean(),
   timezone: z.string().max(100).nullish(),
+  language: z.string().max(20).nullish(), // 購入時のUI言語（i18n.language）。返金/通知メールの言語判定に使う。
 });
 
 export const OrdersInitTopupCheckoutInput = z.object({
@@ -62,4 +63,10 @@ export const OrdersInitTopupCheckoutInput = z.object({
   bappyPlanId: z.string().min(1),
   origin: z.string().url(),
   timezone: z.string().max(100).nullish(),
+  language: z.string().max(20).nullish(),
+});
+
+export const AdminRefundOrderInput = z.object({
+  orderId: z.string().min(1),
+  reason: z.string().max(200).nullish(),
 });

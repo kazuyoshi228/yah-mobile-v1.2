@@ -21,7 +21,7 @@ export default function Terms() {
     },
     {
       title: "4. Refund Policy",
-      body: "eSIM is a digital product. Once your QR code has been issued, cancellations and refunds are not available. If you experience technical issues preventing eSIM activation, please contact our support team within 24 hours of purchase.",
+      body: "eSIM is a digital product. Once your QR code has been issued, cancellations and refunds are not available. Exception: if we are unable to deliver your eSIM or data top-up due to a technical problem on our side (for example, a system error or a failure of our upstream provider), we will refund your payment in full. In such cases the refund is issued automatically to your original payment method once the failure is confirmed, and no action is required on your part. If your eSIM was delivered but you experience technical issues preventing activation, please contact our support team within 24 hours of purchase.",
     },
     {
       title: "5. Prohibited Activities",
@@ -45,7 +45,7 @@ export default function Terms() {
     },
     {
       title: "10. Specified Commercial Transactions Act (特定商取引法)",
-      body: "Seller: yah.mobile | Contact: Available via chat.yah.mobi | Phone: Disclosed without delay upon request | Price: As displayed at time of purchase (JPY, tax included) | Additional fees: None | Payment: Credit/debit card via Stripe | Delivery: Immediate upon payment (QR code delivered to registered email) | Returns/Cancellations: Not accepted after QR code issuance (digital product). If activation fails due to a technical issue on our side, please contact support within 24 hours.",
+      body: "Seller: yah.mobile | Contact: Available via chat.yah.mobi | Phone: Disclosed without delay upon request | Price: As displayed at time of purchase (JPY, tax included) | Additional fees: None | Payment: Credit/debit card via Stripe | Delivery: Immediate upon payment (QR code delivered to registered email) | Returns/Cancellations: Not accepted after QR code issuance (digital product). Exception: if we cannot deliver the eSIM or top-up due to a technical issue on our side (a system error or an upstream provider failure), the payment is refunded in full — issued automatically to the original payment method once the failure is confirmed. For activation issues after delivery, contact support within 24 hours of purchase.",
     },
   ];
 

@@ -14,7 +14,7 @@ import type { FsEsimLink, FsPlan } from "../../../shared/types";
 
 
 export default function TopupPage({ params }: { params: { esimLinkId: string } }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { esimLinkId } = params;
   const { user, isAuthenticated, loading } = useAuth();
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -70,13 +70,14 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
     const bappyPlanId = plan.bappyPlanId;
 
     try {
-      const result = await callFunction<{ esimLinkUuid: string; bappyPlanId: string; origin: string; timezone: string }, { checkoutUrl: string; orderId: string }>(
+      const result = await callFunction<{ esimLinkUuid: string; bappyPlanId: string; origin: string; timezone: string; language: string }, { checkoutUrl: string; orderId: string }>(
         CALLABLE.ordersInitTopupCheckout,
         {
           esimLinkUuid: esimLink.bappyLinkUuid,
           bappyPlanId: bappyPlanId, // The cloud function queries plans where bappyPlanId matches
           origin: window.location.origin,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          language: i18n.language,
         }
       );
 

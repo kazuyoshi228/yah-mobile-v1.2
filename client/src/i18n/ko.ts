@@ -298,6 +298,7 @@ const ko = {
     loginConsentSuffix: "에 동의하는 것으로 간주됩니다.",
   },
   mypage: {
+    refundedInfo: "환불됨",
     notifications: {
       title: "알림",
       empty: "새 알림이 없습니다",

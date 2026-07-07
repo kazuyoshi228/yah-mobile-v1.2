@@ -22,6 +22,8 @@ export type OrderRow = {
   status: string;
   amountJpy: number | null;
   createdAt: number;
+  refundStatus?: string | null;
+  refundedAt?: number | null;
 };
 
 export type EsimPreview = {

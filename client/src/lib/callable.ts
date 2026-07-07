@@ -19,6 +19,7 @@ export const CALLABLE = {
   orderRetryPayment: "orderRetryPayment",
   ordersInitCheckout: "ordersInitCheckout",
   ordersInitTopupCheckout: "ordersInitTopupCheckout",
+  adminRefundOrder: "adminRefundOrder",
   // 一回限りの移行用（実行後に関数ごと削除してよい）
   adminMigrateIsActiveToBoolean: "adminMigrateIsActiveToBoolean",
 } as const;

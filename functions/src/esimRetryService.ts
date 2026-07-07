@@ -38,6 +38,7 @@ import {
   collections,
 } from "./db";
 import { ENV } from "./env";
+import { executeRefund, isAutoRefundEnabled } from "./refund";
 
 const OMAX_TECH_EMAIL = ENV.omaxTechEmail;
 
@@ -265,10 +266,39 @@ export async function processPendingRetries(): Promise<{ processed: number; succ
         });
         await updateOrder(job.orderId, { status: "failed" });
 
-        // Escalation notification to owner
+        // Lane A: 当社側エラー（発行/topup 最終失敗）は自動で全額返金する。
+        // 返金の確定・顧客通知・返金メールは charge.refunded webhook 側で一元処理される。
+        // キルスイッチ（system_config/refunds.autoRefundEnabled）で即時停止できる。
+        let autoRefundTriggered = false;
+        try {
+          if (await isAutoRefundEnabled()) {
+            const rr = await executeRefund(job.orderId, "system_failure");
+            autoRefundTriggered = rr.ok;
+            if (rr.ok) {
+              logger.info(`[RetryService] Auto-refund triggered for order ${job.orderId}`);
+              await notifyOwner({
+                title: `↩️ 自動返金を実行 — 注文 #${job.orderId}`,
+                content: `発行/topup 最終失敗のため自動返金をトリガーしました。確定・顧客への返金メールは charge.refunded webhook で処理されます。`,
+              }).catch(() => undefined);
+            } else if (rr.error !== "no_payment_intent") {
+              // executeRefund 内で incident_logs 記録＋オーナー通知済み。
+              logger.error(`[RetryService] Auto-refund failed for order ${job.orderId}: ${rr.error}`);
+            }
+          } else {
+            logger.warn(`[RetryService] Auto-refund disabled (kill switch) for order ${job.orderId}`);
+            await notifyOwner({
+              title: `⏸️ 自動返金OFF・手動対応要 — 注文 #${job.orderId}`,
+              content: `自動返金がキルスイッチ（/admin 返金タブのトグル）で無効化されています。/admin 返金タブから手動で返金してください。`,
+            }).catch(() => undefined);
+          }
+        } catch (refundErr) {
+          logger.error(`[RetryService] Auto-refund unexpected error for order ${job.orderId}:`, refundErr);
+        }
+
+        // Escalation notification to owner（技術的失敗の調査喚起）
         await notifyOwner({
-          title: `🚨 eSIM発行 最終失敗 — 注文 #${job.orderId}（手動対応が必要）`,
-          content: `**注文ID:** ${job.orderId}\n**試行回数:** ${attemptNum}回（全て失敗）\n**最後のエラー:** ${errorMessage}\n\n**手動対応が必要です。**\nStripeダッシュボードで返金処理、またはBappy APIを直接確認してください。`,
+          title: `🚨 eSIM発行 最終失敗 — 注文 #${job.orderId}`,
+          content: `**注文ID:** ${job.orderId}\n**試行回数:** ${attemptNum}回（全て失敗）\n**最後のエラー:** ${errorMessage}\n\n**返金:** ${autoRefundTriggered ? "自動でトリガー済み（webhookで確定）" : "未実行 — /admin 返金タブで手動対応してください"}。\nBappy API 側の原因調査もお願いします。`,
         });
 
         // Escalation email to OMAX
@@ -294,25 +324,30 @@ export async function processPendingRetries(): Promise<{ processed: number; succ
           }
         }
 
-        // Notify user of final failure (in-app)
-        await createNotification({
-          userId: job.userId,
-          title: "eSIMの発行に失敗しました",
-          body: "eSIMの発行に失敗しました。サポートにお問い合わせいただくか、返金をリクエストしてください。",
-          type: "order_failed",
-          orderId: job.orderId,
-        });
+        // 顧客への通知/メール：自動返金をトリガーした場合は送らない。
+        // （charge.refunded webhook が refund_completed 通知＋返金メールを送るため、
+        //   ここで「返金をリクエストしてください」と案内すると矛盾・二重連絡になる。）
+        if (!autoRefundTriggered) {
+          // Notify user of final failure (in-app)
+          await createNotification({
+            userId: job.userId,
+            title: "eSIMの発行に失敗しました",
+            body: "eSIMの発行に失敗しました。サポートにお問い合わせいただくか、返金をリクエストしてください。",
+            type: "order_failed",
+            orderId: job.orderId,
+          });
 
-        // Send user email (final failure)
-        try {
-          const user = await getUserById(job.userId);
-          if (user?.email) {
-            const { subject, html } = buildEsimFailedEmail({ orderId: job.orderId });
-            await sendEmail({ to: user.email, subject, html });
-            logger.info(`[RetryService] Sent final-failure email to user ${job.userId}`);
+          // Send user email (final failure)
+          try {
+            const user = await getUserById(job.userId);
+            if (user?.email) {
+              const { subject, html } = buildEsimFailedEmail({ orderId: job.orderId });
+              await sendEmail({ to: user.email, subject, html });
+              logger.info(`[RetryService] Sent final-failure email to user ${job.userId}`);
+            }
+          } catch (mailErr) {
+            logger.error("[RetryService] Failed to send final-failure email to user:", mailErr);
           }
-        } catch (mailErr) {
-          logger.error("[RetryService] Failed to send final-failure email to user:", mailErr);
         }
 
         logger.error(`[RetryService] Retry job ${job.id} FINAL FAILURE after ${attemptNum} attempts`);

@@ -18,9 +18,12 @@ const slackWebhookUrl = defineSecret("SLACK_WEBHOOK_URL");
 
 import {
   getOrderByStripeSessionId,
+  getOrderByStripePaymentIntentId,
   updateOrder,
   getEsimLinkByOrderId,
   getUserByUid,
+  getUserById,
+  createNotification,
   collections,
   db,
   FsOrder,
@@ -28,7 +31,7 @@ import {
   incrementSystemStats,
 } from "./db";
 import { createLink, addTopupPlan } from "./bappy";
-import { sendEmail, buildEsimReadyEmail, buildPurchaseReceivedEmail } from "./mailer";
+import { sendEmail, buildEsimReadyEmail, buildPurchaseReceivedEmail, buildRefundCompletedEmail } from "./mailer";
 import { handleProvisioningFailure } from "./esimRetryService";
 export const stripeWebhook = onRequest(
   {
@@ -100,6 +103,8 @@ export const stripeWebhook = onRequest(
     try {
       if (ev.type === "checkout.session.completed") {
         await handleCheckoutCompleted(ev.data.object);
+      } else if (ev.type === "charge.refunded") {
+        await handleChargeRefunded(ev.data.object);
       }
       // Update as processed successfully
       await eventRef.update({ processed: true });
@@ -113,6 +118,63 @@ export const stripeWebhook = onRequest(
     res.json({ received: true });
   }
 );
+
+/**
+ * charge.refunded ハンドラ（返金の真実源）。
+ * 返金の入口（/admin返金ボタン=adminRefundOrder / Lane A自動 / Stripeダッシュボード手動）が
+ * どれであっても、Stripe が返金を実行すると本イベントが届く。ここで初めて注文を "refunded" に
+ * 確定し、顧客への通知＋返金メールを一元的に送る（＝全経路で反映・通知が一貫する）。
+ * 冪等：既に refunded の注文は何もしない（webhook 冪等ガード＋本チェックの二重防御）。
+ */
+async function handleChargeRefunded(charge: Record<string, unknown>) {
+  const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : null;
+  if (!paymentIntentId) {
+    logger.error("[handleChargeRefunded] No payment_intent on charge; cannot locate order");
+    return;
+  }
+
+  const order = await getOrderByStripePaymentIntentId(paymentIntentId);
+  if (!order) {
+    logger.error(`[handleChargeRefunded] Order not found for payment_intent: ${paymentIntentId}`);
+    return;
+  }
+
+  if (order.status === "refunded" || order.refundStatus === "refunded") {
+    logger.info(`[handleChargeRefunded] Order ${order.id} already refunded. Skipping.`);
+    return;
+  }
+
+  const refunds = charge.refunds as { data?: Array<{ id?: string }> } | undefined;
+  const stripeRefundId = refunds?.data?.[0]?.id ?? null;
+  const now = Date.now();
+
+  await updateOrder(order.id!, {
+    status: "refunded",
+    refundStatus: "refunded",
+    stripeRefundId,
+    refundedAt: now,
+  });
+
+  // 顧客への in-app 通知（本文は client 側で i18n。ここでは英語フォールバックを保存）
+  await createNotification({
+    userId: order.userId,
+    title: "Refund processed",
+    body: `Your payment for order #${order.id} has been refunded in full.`,
+    type: "refund_completed",
+    orderId: order.id!,
+  }).catch((err: unknown) => logger.error(`[handleChargeRefunded] Failed to create notification for order ${order.id}:`, err));
+
+  // 返金完了メール（購入時ページ言語で5言語分岐）
+  const email = order.userEmail ?? (await getUserById(order.userId).catch(() => null))?.email ?? null;
+  if (email) {
+    const built = buildRefundCompletedEmail({ orderId: order.id!, amountJpy: order.amountJpy, language: order.language });
+    await sendEmail({ to: email, ...built }).catch((err: unknown) =>
+      logger.error(`[handleChargeRefunded] Failed to send refund email for order ${order.id}:`, err),
+    );
+  }
+
+  logger.info(`[handleChargeRefunded] Order ${order.id} marked refunded (refundId=${stripeRefundId ?? "n/a"})`);
+}
 
 async function handleCheckoutCompleted(session: Record<string, unknown>) {
   const orderId = (session.metadata as Record<string, string> | undefined)?.order_id;

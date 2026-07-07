@@ -37,8 +37,10 @@ import {
   OrderRetryPaymentInput,
   SubmitContactInquiryInput,
   OrdersInitCheckoutInput,
-  OrdersInitTopupCheckoutInput
+  OrdersInitTopupCheckoutInput,
+  AdminRefundOrderInput
 } from "../../shared/schemas";
+import { executeRefund } from "./refund";
 
 // Admin APIs are fully removed and replaced by direct BaaS + Firestore Rules
 
@@ -418,7 +420,7 @@ export const ordersInitCheckout = onCall(
     // 2. 入力バリデーション
     const parsed = OrdersInitCheckoutInput.safeParse(request.data ?? {});
     if (!parsed.success) throw zodError(parsed.error.message);
-    const { bappyPlanId, origin, termsConsented, privacyConsented, marketingConsented, timezone } = parsed.data;
+    const { bappyPlanId, origin, termsConsented, privacyConsented, marketingConsented, timezone, language } = parsed.data;
 
     // 3. プラン取得・検証（Firestoreから直接）
     const plansSnap = await db.collection("plans")
@@ -446,6 +448,7 @@ export const ordersInitCheckout = onCall(
       orderType: "initial",
       origin,
       purchaseTimezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: language || null,
       termsConsented,
       privacyConsented,
       marketingConsented,
@@ -522,7 +525,7 @@ export const ordersInitTopupCheckout = onCall(
 
     const parsed = OrdersInitTopupCheckoutInput.safeParse(request.data ?? {});
     if (!parsed.success) throw zodError(parsed.error.message);
-    const { esimLinkUuid, bappyPlanId, origin, timezone } = parsed.data;
+    const { esimLinkUuid, bappyPlanId, origin, timezone, language } = parsed.data;
 
     // 所有権チェック（IDOR防止）: 対象のeSIMが本人のものであることを検証する。
     // これがないと他人のesimLinkUuidを指定して他ユーザーのeSIMにデータを追加できてしまう。
@@ -556,6 +559,7 @@ export const ordersInitTopupCheckout = onCall(
       orderType: "topup",
       origin,
       purchaseTimezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: language || null,
       createdAt: now,
       updatedAt: now,
     });
@@ -589,5 +593,27 @@ export const ordersInitTopupCheckout = onCall(
       if (err instanceof HttpsError) throw err;
       throw new HttpsError("internal", "決済の初期化に失敗しました。");
     }
+  }
+);
+
+// ─── adminRefundOrder（Lane B・管理画面の返金ボタン） ──────────────────────────────
+// /admin 返金タブの「返金する」ボタンから呼ぶ。App Check ＋ admin claims 必須。
+// 実際の返金は executeRefund → Stripe。確定/顧客通知/返金メールは charge.refunded webhook。
+// キルスイッチ（Lane A自動）の対象外＝人間の判断なので常に実行できる。
+export const adminRefundOrder = onCall(
+  { region: REGION, enforceAppCheck: true, secrets: [stripeSecretKey] },
+  async (request) => {
+    await requireAdmin(request);
+
+    const parsed = AdminRefundOrderInput.safeParse(request.data ?? {});
+    if (!parsed.success) throw zodError(parsed.error.message);
+    const { orderId, reason } = parsed.data;
+
+    const result = await executeRefund(orderId, reason || "manual");
+    if (!result.ok) {
+      throw new HttpsError("internal", `返金に失敗しました: ${result.error ?? "unknown"}`);
+    }
+    logger.info(`[adminRefundOrder] Refund triggered for order ${orderId} by admin`);
+    return { ok: true };
   }
 );

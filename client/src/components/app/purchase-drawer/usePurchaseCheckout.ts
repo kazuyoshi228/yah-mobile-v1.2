@@ -13,7 +13,7 @@ type CheckoutUser = { uid: string; email?: string | null } | null;
  * step4 の同意UIと購入ボタンから利用する。
  */
 export function usePurchaseCheckout(currentOpt: PlanOption | null, user: CheckoutUser) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [refundConsented, setRefundConsented] = useState(false);
   const [refundConsentError, setRefundConsentError] = useState(false);
@@ -32,6 +32,7 @@ export function usePurchaseCheckout(currentOpt: PlanOption | null, user: Checkou
     privacyConsented: boolean;
     marketingConsented: boolean;
     timezone?: string;
+    language?: string;
   }, { checkoutUrl: string; orderId: string }>(CALLABLE.ordersInitCheckout);
 
   const handlePurchase = useCallback(async () => {
@@ -59,6 +60,7 @@ export function usePurchaseCheckout(currentOpt: PlanOption | null, user: Checkou
         privacyConsented,
         marketingConsented,
         timezone,
+        language: i18n.language,
       });
 
       if (res.checkoutUrl) {
