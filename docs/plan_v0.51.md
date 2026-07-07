@@ -1,7 +1,7 @@
 # yah.mobile v0.51 実装計画書
 
-作成: 2026-07-06 ／ 更新: **2026-07-07（返金機能＋`/contact`ページを本番リリース・進捗棚卸し・出典ラベル中立化）** ／ 基準コミット: `f02ccb3`（dev=main=origin/v0.51）／ ステータス: **進行中（各実装フェーズは着手前に個別承認）**
-評価: 現行 = **A（約91/100）**・招待制でソフトローンチ可（**返金Must-fix解消で加点**。GA残は柱1/柱2/可観測性）
+作成: 2026-07-06 ／ 更新: **2026-07-07（返金機能・`/contact`・S10死活監視/S9到達性・S1可観測性を本番リリース）** ／ 基準コミット: `b3c01d5`（dev=origin/v0.51／main はコード反映済み）／ ステータス: **進行中（各実装フェーズは着手前に個別承認）**
+評価: 現行 = **A（約93/100）**・招待制でソフトローンチ可（**返金Must-fix＋可観測性（S1/S9/S10）解消で加点**。GA残は柱1/柱2/S7ランブック）
 リリース: v0.5 本番リリース済み。以降の hardening（rules型安全化・DB改善・購入確認メール等）も**本番反映済み**。詳細は §1.5。
 
 > 🚨 本書は v0.51 全体の**計画レイヤ**。CLAUDE.md の実装フローに従い、`functions/`・`firestore.rules`・本番/hosting デプロイは**各フェーズ着手前にユーザー承認**を得る。本書は「何を・なぜ・どの順で」を確定するためのもの。
@@ -51,18 +51,18 @@
 | セキュリティ | A−（Webhook認証は評価外） |
 | 決済 | A（署名検証・冪等・金額検証◎／**返金＝当社エラー自動＋管理画面手動を実装済**） |
 | 信頼性・障害復旧 | B+（**返金自動化済**／SPOFは柱2で対応中） |
-| 可観測性・運用 | B−（外部エラートラッキング無し） |
+| 可観測性・運用 | B+（**Error Reporting統合＋フロントエラー収集＋死活監視/到達性メール**実装済／残は柱1・S7ランブック） |
 | テスト・CI/CD | B（重要パス有／テストゲート未） |
 | コード品質・型 | A− |
 | アクセシビリティ | B− |
 | i18n/SEO | A |
-| **総合** | **A（約91/100）**（返金Must-fix解消で +2） |
+| **総合** | **A（約93/100）**（返金Must-fix＋可観測性 S1/S9/S10 で +4） |
 
 ### 1.3 GAに向けた宿題（v0.51 スコープ）
 - ✅ Must-fix：**①返金経路の確立 → 完了・本番リリース済み**（Lane A当社側エラー自動返金＋Lane B管理画面手動＋Stripe真実源＋5言語メール＋キルスイッチ＋Terms例外条項。§1.5）。※eSIMAccess cancel連携の返金は柱2で追加。
 - 🚨 Must-fix：**②プロバイダSPOF緩和** → **柱2（eSIMAccess）**で本質解決。
 - ⏸ 確認中：**Bappy Webhook 受信認証** → **柱1**で結論を出す。
-- 🟡 早期：**可観測性（Error Reporting通知＋フロントエラー収集）**／**テストゲート付きCI**／**a11y**／**PWAキャッシュ**／**lastSignedIn毎ログイン更新**。
+- 🟡 早期：~~可観測性（Error Reporting通知＋フロントエラー収集）~~✅／~~テストゲート付きCI~~✅／~~PWAキャッシュ~~✅ は完了。残：**a11y（S3）**／**lastSignedIn毎ログイン更新（S5）**。
 - 🟢 任意：管理画面 `any` 削減・E2E拡充。
 
 ### 1.4 参照ドキュメント
@@ -78,6 +78,8 @@
 |---|---|---|
 | **🎯 返金機能（Must-fix①）** | **Lane A**：当社側エラー（発行/topup最終失敗）を自動全額返金。**Lane B**：`/admin` 返金タブ（返金ボタン＋自動返金ON/OFFキルスイッチ）。**Stripe `charge.refunded` webhook を真実源**に3経路を一元化。購入時ページ言語を注文保存し**5言語返金メール**。Terms/llms.txt に**例外条項**。設計→[spec_refund.md](./spec_refund.md) | ✅ **本番 functions/rules/hosting**＋Stripe設定（charge.refunded購読・返金メールOFF） |
 | **問い合わせ専用ページ `/contact`** | AIチャット直リンク用の軽量ページ（`Nav`＋`ContactSection`再利用＋`Footer`）。Nav/Footerの「Contact」は `/app#contact` のまま据え置き。設計→[design_contact_page.md](./design_contact_page.md) | ✅ **本番hosting**（`yah.mobi/contact`） |
+| **🛎️ S10 死活監視＋S9 到達性** | `providerHealthCheck`（15分）でBappy認証をライブping→失敗を即通知。`notifyOwner` をメール到達付き（プライマリ失敗フォールバック＋critical必達）に修正＝7月に通知が届かなかった根因を解消。→ [design_s10_provider_healthcheck.md](./design_s10_provider_healthcheck.md) | ✅ **本番 functions**＋OWNER_EMAIL登録 |
+| **👁️ S1 可観測性** | (a) Error Reporting 新規エラー通知ON（メール）＋(b) フロントエラー収集（`clientErrorLog`＋`errorReporting.ts`・PII非送信・Error Reporting統合）。→ [design_s1_frontend_error_collection.md](./design_s1_frontend_error_collection.md) | ✅ **本番 functions/hosting**＋設定 |
 | **S2 CIテストゲート** | GitHub Actions（tsc/lint/client/functions/rules を push・PR で自動実行、E2Eは任意ジョブ）。本番デプロイは含めない | ✅ dev（`.github/workflows/ci.yml`・v0.51で稼働） |
 | **S4 PWAキャッシュ** | `registerType: prompt` ＋ 更新バナー＋定期update()。手動キャッシュ削除不要に | ✅ **本番hosting** |
 | **① Refresh体感改善** | "Syncing…" をデータ反映まで継続＋「Last updated」表示 | ✅ **本番hosting** |
@@ -86,7 +88,7 @@
 | **障害対応（Bappy認証失効）** | `OMAX_CLIENT_ID` 末尾改行→401 を復旧、esim_links 同期のレート制限ルールを型安全化 | ✅ **本番 functions/rules** |
 | SSH運用・v0.51主リポジトリ化 | push をトークン不要のSSHに、origin=yah-mobile-v0.51 | ✅ |
 
-> **残る本丸**：柱1（Webhook確認）／柱2（eSIMAccess並走）／S1（可観測性）／**S10（プロバイダ死活監視）**／S7（運用ランブック）。**返金（Must-fix①）は本セッションで完了**（eSIMAccess cancel連携の返金のみ柱2で追加）。DB-03/09/10 は実コード検証の結果**非改善/無意味/読み手なし**で**非対応**と判断（[firestore_schema.md] 参照）。
+> **残る本丸**：柱1（Webhook確認）／柱2（eSIMAccess並走）／S7（運用ランブック）。**返金（Must-fix①）・S10死活監視・S9到達性・S1可観測性は本セッションで完了**（eSIMAccess cancel連携の返金のみ柱2で追加）。DB-03/09/10 は実コード検証の結果**非改善/無意味/読み手なし**で**非対応**と判断（[firestore_schema.md] 参照）。
 
 ---
 
@@ -221,15 +223,15 @@ plans/{id}: {
 
 | # | 状態 | 項目 | 内容 | 変更範囲 |
 |---|---|---|---|---|
-| S1 | ⬜ 未 | 可観測性 | **Error Reporting の新規エラー通知ON**（Functionsは自動集約済）＋**フロントのブラウザ内エラー収集**（Sentry無料枠 or 自前送信・PIIスクラブ・CSP更新） | フロント＋設定 |
+| S1 | ✅ 完了 | 可観測性 | **(a) Error Reporting 新規エラー通知ON**（メールチャンネル設定済）＋**(b) フロントのブラウザ内エラー収集**（`clientErrorLog`＋`errorReporting.ts`・PII非送信・自前でError Reportingに統合）。→ [design_s1_frontend_error_collection.md](./design_s1_frontend_error_collection.md) | **本番 functions/hosting**＋設定 |
 | S2 | ✅ 完了 | CI テストゲート | GitHub Actions で push/PR に tsc/lint/client/functions/rules を自動実行。E2Eは任意ジョブ。デプロイは含めない | CI（`ci.yml`） |
 | S3 | ⬜ 未 | アクセシビリティ | aria/キーボード点検（購入・問い合わせフォーム優先） | フロント |
 | S4 | ✅ 完了 | PWA キャッシュ | `registerType: prompt`＋更新バナー＋定期update()。**本番反映済み** | フロント |
 | S5 | ⬜ 未 | lastSignedIn | 毎ログインで更新する仕組み（現状ほぼ未更新） | functions or client |
 | **S7（solo）** | ⬜ 未 | **運用ランブック** | 障害/返金/手動発行/デプロイ/復旧/バックアップ手順を **別doc `docs/runbook_solo_ops.md`** に整備（バス係数=1対策・恒久文書） | ドキュメント |
 | **S8（solo）** | ⬜ 未 | **依存自動更新** | Dependabot/Renovate で npm/pnpm・Firebase SDK の更新PRを自動化 | CI/設定 |
-| **S9（solo）** | ⬜ 未 | **アラート最適化** | 「本当に対応が要る時だけ鳴る」よう Error Reporting/Slack 通知の閾値・粒度を調整 | 設定 |
-| **S10（最優先）** | ⬜ 未 | **プロバイダ死活/認証監視** | Bappy(OMAX)/eSIMAccess の**認証を定期ping**（例: `onSchedule` 15分）し **401/失敗を即オーナー通知**。発行/同期エラー率もしきい値監視。**「発行系が止まったら数分で気づく」を担保** | functions＋設定 |
+| **S9（solo）** | ✅ 完了 | **アラート到達性** | `notifyOwner` を単一チャンネル→**プライマリ失敗時にOWNER_EMAILへメール／critical必達**に（`ENV.ownerEmail` 未使用だった＝7月に届かなかった根因を修正）。Contactログのerror→warn格下げでノイズ削減も。→ [design_s10_provider_healthcheck.md](./design_s10_provider_healthcheck.md) | **本番 functions** |
+| **S10（最優先）** | ✅ 完了 | **プロバイダ死活/認証監視** | `providerHealthCheck`（`onSchedule` 15分）で **Bappy(OMAX)認証をライブping** → 401/失敗を**即オーナー通知**（S9のメール必達に乗せる）。状態は `system_config/provider_health`＋デバウンス通知。**「発行系が止まったら数分で気づく」を担保**。eSIMAccessは柱2導入後に追加 | **本番 functions** |
 | S6（任意） | 🟡 一部 | 型/テスト | E2E（Playwright 34件）は導入済み。管理画面 `any` 削減は残 | フロント |
 
 > **⚠️ 実インシデント（2026-07-06 検知）が S10 の必要性を実証**：`OMAX_CLIENT_ID` 末尾の改行混入（07-03の Secret Manager 移行時の貼り付け事故）で **Bappy認証が 401 になり、発行・トップアップ・同期が 07-02〜07-06 の約4日間ダウン**。しかも**気づいたのは顧客申告から**で、07-03 の発行失敗時の `notifyOwner` も**オーナーに届いていなかった**（＝アラート到達の穴）。→ **S10（認証死活ping）＋S9（アラート到達性）＋柱2（eSIMAccess並走でSPOF緩和）** を最優先で実装すべき、という具体的裏付け。詳細は運用ランブック（S7）にも「プロバイダ認証失効」の手順として記載する。
@@ -256,7 +258,7 @@ v0.51 完了＝以下を満たせば GA 可と判定：
 - [x] **Must-fix「返金」クローズ**（2026-07-07 完了・本番リリース済）：当社側エラーは自動全額返金（Lane A）＋管理画面の手動返金（Lane B）＋Stripe真実源で全経路一元反映＋5言語返金メール＋キルスイッチ＋Terms例外条項。※eSIMAccess cancel連携は柱2で追加
 - [ ] **Must-fix「SPOF」緩和**（eSIMAccess 並走 or 販売停止ガード＋監視＋手動発行手順）
 - [ ] **柱1 Webhook 受信認証の結論**（署名検証 or 多層防御を実装）
-- [ ] **可観測性 最低限**（Error Reporting通知＋フロントエラー収集＋**S10 プロバイダ死活/認証監視**＝発行系停止を数分で検知。2026-07インシデントで必須と実証）
+- [x] **可観測性 最低限**（2026-07-07 完了）：Error Reporting新規エラー通知＋フロントエラー収集（S1）＋**S10 プロバイダ死活/認証監視**＋S9到達性メール＝発行系停止を数分で検知しオーナーに必ず届く。2026-07インシデントの再発防止を実装。
 - [ ] **サポート/チャット整合**（→ [design_support_ai_chat_copy.md](./design_support_ai_chat_copy.md)）：**(a) AIチャット実装・稼働** または **(b) チャット表記のフォーム主導への修正**（"24/7 chat" 暫定化・CTAをフォームへ・`Terms/Privacy/Cookie` 連絡先の有効化）のいずれか。※人的チーム含意の除去(A)・応答SLAの実値化(B)は v0.5 で対応済み
 - [ ] **Solo運用の最低限**（S7ランブック `docs/runbook_solo_ops.md` ＋ S9アラート最適化）＝一人でも「鳴ったら手順どおり対応」できる状態。※交代要員なしのため GA前に必須級
 - [ ] 全検証（tsc/vitest/rules/build）＋dev確認＋カナリア観測OK
