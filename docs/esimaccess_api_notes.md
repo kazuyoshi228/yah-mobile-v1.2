@@ -138,6 +138,49 @@
 
 ---
 
+## 2026-07-07 追記②（Postmanコレクション全体で確定 — 実装レベル）
+
+### 🔑 認証（確定）— 2方式あり
+1. **Key in Header**（簡易）：`RT-AccessCode: <accessCode>` のみ。Postmanコレクションの既定はこれ（`{{accessCode}}`）。
+2. **HMAC-SHA256 署名**（推奨・write系はこちらで固める）：ヘッダに
+   - `RT-AccessCode`（アクセスコード）
+   - `RT-RequestID`（uuid.v4 の新規UUID）
+   - `RT-Signature`（署名 HexString）
+   - `RT-Timestamp`（送信時刻ミリ秒・文字列）
+   - **計算**：`signData = Timestamp + RequestID + AccessCode + RequestBody` → `signature = HMAC_SHA256(signData, SecretKey).toLowerCase()`
+   - `SecretKey` はアカウントで発行（accessCode とは別）。
+   - エラー：`101001` timestamp expired / `101002` IP blocklist / `101003` signature mismatch。
+- **実装方針**：write系（order/topup/cancel/revoke）は **HMAC署名で実装**（money-moving のため）。read（balance/package/query）は RT-AccessCode でも可。→ `ESIMACCESS_ACCESS_CODE` と `ESIMACCESS_SECRET_KEY` を Secret Manager に。
+
+### エンドポイント全マップ（`{{host}} = https://api.esimaccess.com`、全て POST `/api/v1/open/...`）
+| 用途 | Path | 主要 in / out |
+|---|---|---|
+| パッケージ一覧 | `/package/list` | in: `locationCode`(JP等)・`type`(BASE/TOPUP)・`packageCode`/`slug`/`iccid`・`dataType`／ out: `packageList[]`（`packageCode`,`slug`,`name`,`price`,`volume`(bytes),`duration`,`durationUnit`,`location`,`activeType`,`supportTopUpType`,`speed`,`fupPolicy`…） |
+| **発行** | `/esim/order` | in: `transactionId`(一意・冪等)・`amount`(任意)・`packageInfoList[{packageCode/slug,count,price}]`／ out: `orderNo`,`transactionId` |
+| **状態/QR照会** | `/esim/query` | in: `orderNo`/`iccid`/`esimTranNo`＋`pager`／ out: `esimList[]`（`esimTranNo`,`iccid`,`ac`(LPA),`qrCodeUrl`,`shortUrl`,`smdpStatus`,`esimStatus`,`totalVolume`,`orderUsage`,`expiredTime`,`packageList[{packageCode,locationCode}]`）。※未確定時 `200010`（割当中） |
+| **キャンセル(返金)** | `/esim/cancel` | in: `esimTranNo`(推奨)/`iccid`／ **未使用(GOT_RESOURCE+RELEASED)のみ可＝残高へ返金**。使用後は不可 |
+| 一時停止/再開 | `/esim/suspend` `/esim/unsuspend` | in: `esimTranNo`/`iccid` |
+| 失効(返金不可) | `/esim/revoke` | **Non-refundable**。有効eSIMを閉じる |
+| **トップアップ** | `/esim/topup` | in: `esimTranNo`(推奨・iccidは非推奨)・`packageCode`(`TOPUP_`)・`transactionId`・`periodNum`／ out: 新`expiredTime`,`totalVolume`,`totalDuration`,`topUpEsimTranNo`。New/In Use/Depleted で可・期限切れ後不可 |
+| 残高 | `/balance/query` | out: `balance`（×10000, 100000=$10） |
+| 使用量 | `/esim/usage/query` | in: `esimTranNoList`(最大10)／ 2-3h遅延 |
+| Webhook設定/確認 | `/webhook/save` `/webhook/query` | in: `{webhook: URL}` |
+| SMS送信 | `/esim/sendSms` | in: `esimTranNo`/`iccid`・`message` |
+| 対応地域 | `/location/list` | JP他 |
+
+### 実装上の重要点（確定）
+- **価格は ×10000（USD）**。**データ量は bytes**。
+- **安定IDは `esimTranNo`**（iccid は再利用されるため）。状態照会・cancel・topup は esimTranNo 推奨。
+- **発行フロー**：`/esim/order`→`orderNo` → Webhook `ORDER_STATUS(GOT_RESOURCE)` → `/esim/query`(orderNo) で `iccid`/`ac`/`qrCodeUrl` 取得（最大~30秒。届かなければ query をポーリング、`200010` は割当中）。
+- **返金の実挙動（重要）**：`cancel` は**未インストール（GOT_RESOURCE/RELEASED）のみ残高返金**。使用開始後は `cancel` 不可・`revoke` は返金なし。→ **当社の返金連携は「未有効化の失敗注文」に自然に一致**（発行失敗＝未インストール＝cancelで残高返金 → Stripe refund）。
+- Bappy との対応：`createLink`≈`/esim/order`＋`/esim/query`、`getLinkDetail`≈`/esim/query`、`addTopupPlan`≈`/esim/topup` → **Provider抽象に素直に載る**。
+
+### Provider抽象 設計への含意
+- `EsimProvider` IF（案）：`createEsim({packageCode,count,transactionId})→{providerOrderId}` / `getEsimDetail(esimTranNo|orderNo)→{iccid,ac,qrCodeUrl,status,usage,expiry}` / `topup(...)` / `cancel(esimTranNo)` / `queryBalance()`。Bappy/eSIMAccess を同IFで実装。
+- Webhook：ORDER_STATUS/ESIM_STATUS/DATA_USAGE/VALIDITY_USAGE を既存の webhooks_bappy 相当にマップ。多層防御＝**IP許可（既知5IP）＋秘密トークンURL＋`/esim/query`裏取り＋`notifyId`冪等**。
+
+---
+
 ## ソース
 
 - Making an eSIM purchase with the API — https://esimaccess.com/making-an-esim-purchase-with-the-api/
