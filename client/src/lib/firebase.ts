@@ -2,9 +2,11 @@
  * firebase.ts — クライアント側 Firebase Auth
  *
  * 設計:
- *   ログインは signInWithPopup のみ（Redirect は使用しない）。
- *   Popup はページ遷移しないため redirectUrl の問題が発生しない。
- *   Firebase が保持する ID Token を tRPC 呼び出しの `Authorization: Bearer` に載せる。
+ *   authDomain はアプリと同一オリジン（yah.mobi）にする（Google同意画面のドメイン表示を yah.mobi に、
+ *   かつ Safari ITP/3rd-party cookie 制約を回避）。
+ *   ログインは PC=Popup / モバイル=Redirect（モバイルは popup がブロック/WebViewで不安定なため）。
+ *   同一オリジン authDomain なら Redirect が ITP 問題なく動く。
+ *   Firebase が保持する ID Token を Callable 呼び出しの認証に載せる。
  */
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
@@ -12,6 +14,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   setPersistence,
@@ -25,7 +29,8 @@ import { getStorage, type FirebaseStorage } from "firebase/storage";
 function buildFirebaseConfig() {
   return {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDlX00FbPP_Ij709LN0Xtrc26VjFh-57Js",
-    authDomain: "yah-mobile-v1-3ed24.firebaseapp.com",
+    // 同一オリジン化で同意画面ドメイン=yah.mobi＋Redirect安定化。ロールバックは env で firebaseapp.com に戻せる。
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "yah.mobi",
     projectId: "yah-mobile-v1-3ed24",
     storageBucket: "yah-mobile-v1-3ed24.firebasestorage.app",
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "904818392772",
@@ -76,6 +81,9 @@ export function getFirebaseAuth(): Auth {
     app = getFirebaseApp();
     auth = getAuth(app);
     void setPersistence(auth, browserLocalPersistence).catch(() => {});
+    // モバイル Redirect ログインの復帰結果を処理する（成功時は onAuthStateChanged が拾う。
+    // ここでは主にエラー捕捉。未ログイン/非redirectでは null が返るだけで無害）。
+    void getRedirectResult(auth).catch((e) => console.warn("[Auth] getRedirectResult:", e));
   }
   return auth;
 }
@@ -105,12 +113,25 @@ googleProvider.addScope("email");
 googleProvider.addScope("profile");
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
+/** モバイル端末/WebView 判定（popup が不安定なため Redirect に切り替える）。 */
+function isMobileBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod|Mobile|FBAN|FBAV|Line|Instagram/i.test(navigator.userAgent);
+}
+
 /**
- * Google サインイン（Popup 方式）。
- * ページ遷移しないため redirectUrl の問題が発生しない。
+ * Google サインイン。
+ * - PC：Popup（ページ遷移しない）。
+ * - モバイル/WebView：Redirect（popup ブロック/WebView 不安定を回避）。同一オリジン authDomain のため
+ *   Safari ITP でも安定。Redirect はページ遷移するため戻り値なし＝復帰後 onAuthStateChanged で確定。
  */
-export async function signInWithGoogle(): Promise<User> {
-  const result = await signInWithPopup(getFirebaseAuth(), googleProvider);
+export async function signInWithGoogle(): Promise<User | void> {
+  const auth = getFirebaseAuth();
+  if (isMobileBrowser()) {
+    await signInWithRedirect(auth, googleProvider);
+    return; // ページ遷移する
+  }
+  const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 }
 
