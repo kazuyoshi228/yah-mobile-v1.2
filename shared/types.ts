@@ -259,11 +259,11 @@ export interface FsPromotion {
 
 export interface FsSystemStats {
   id: string;
-  totalUsers: number;
-  totalOrders: number;
   totalRevenueJpy: number;
-  activeEsims: number;
-  lastUpdated: number;
+  totalOrders: number;
+  totalUsers?: number;   // DB-10: 将来カウントアップ予定（未設定のことがある）
+  activeEsims?: number;  // 同上
+  updatedAt: number;     // incrementSystemStats が書き込む実体
 }
 
 export interface FsEsimUsageLog {
@@ -274,9 +274,23 @@ export interface FsEsimUsageLog {
   detail?: string | null;
 }
 
-export interface FsSystemStat {
+/** analytics_events に記録するイベント名（クライアント trackEvent 由来の想定値） */
+export type AnalyticsEventName =
+  | "page_view"
+  | "plan_tab_click"
+  | "plan_select"
+  | "checkout_start"
+  | "order_complete";
+
+export interface FsAnalyticsEvent {
   id: string;
-  totalRevenueJpy: number;
-  totalOrders: number;
-  updatedAt: number;
+  eventName: string; // 実体はクライアント供給の文字列（想定値は AnalyticsEventName）
+  properties?: Record<string, string | number | boolean | null>;
+  sessionId: string;
+  userId?: string | null;
+  page?: string | null;
+  referrer?: string | null;
+  userAgent?: string | null;
+  language?: string | null;
+  createdAt: number;
 }

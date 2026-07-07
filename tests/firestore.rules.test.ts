@@ -262,6 +262,32 @@ describe("rate_limits", () => {
   });
 });
 
+// ─── log collections（DB-06）──────────────────────────────────────────────────
+describe("log collections", () => {
+  it("incident_logs: 管理者は読める／一般は読めない／クライアント書込不可", async () => {
+    await seed("incident_logs/i1", { type: "esim_failure", status: "open", createdAt: 1 });
+    await assertSucceeds(getDoc(doc(admin(), "incident_logs/i1")));
+    await assertFails(getDoc(doc(alice(), "incident_logs/i1")));
+    await assertFails(setDoc(doc(admin(), "incident_logs/i2"), { status: "open" }));
+  });
+
+  it("audit_logs / ai_referrer_logs: 管理者読取のみ・書込不可", async () => {
+    await seed("audit_logs/a1", { action: "x", createdAt: 1 });
+    await seed("ai_referrer_logs/r1", { botName: "GPTBot", createdAt: 1 });
+    await assertSucceeds(getDoc(doc(admin(), "audit_logs/a1")));
+    await assertFails(getDoc(doc(alice(), "audit_logs/a1")));
+    await assertSucceeds(getDoc(doc(admin(), "ai_referrer_logs/r1")));
+    await assertFails(setDoc(doc(admin(), "audit_logs/a2"), { action: "y" }));
+  });
+
+  it("recommend_logs: 誰も読めない・書けない（Cloud Functions 専用）", async () => {
+    await seed("recommend_logs/rc1", { sessionId: "s", createdAt: 1 });
+    await assertFails(getDoc(doc(admin(), "recommend_logs/rc1")));
+    await assertFails(getDoc(doc(alice(), "recommend_logs/rc1")));
+    await assertFails(setDoc(doc(alice(), "recommend_logs/rc2"), { sessionId: "s" }));
+  });
+});
+
 // ─── default deny ─────────────────────────────────────────────────────────────
 describe("default deny", () => {
   it("ルール未定義のコレクションは読み書きできない", async () => {

@@ -70,7 +70,7 @@ import type {
   FsPromotion,
   FsSystemStats,
   FsEsimUsageLog,
-  FsSystemStat
+  FsAnalyticsEvent
 } from "../../shared/types";
 
 export type {
@@ -90,7 +90,7 @@ export type {
   FsPromotion,
   FsSystemStats,
   FsEsimUsageLog,
-  FsSystemStat
+  FsAnalyticsEvent
 };
 
 // ─── Users Helpers ────────────────────────────────────────────────────────────
@@ -606,16 +606,9 @@ export async function recordConsents(data: {
   ]);
 }
 
-export async function createAnalyticsEvent(data: {
-  eventName: string;
-  properties?: unknown;
-  sessionId: string;
-  userId?: string | null;
-  page?: string | null;
-  referrer?: string | null;
-  userAgent?: string | null;
-  language?: string | null;
-}): Promise<void> {
+export async function createAnalyticsEvent(
+  data: Omit<FsAnalyticsEvent, "id" | "createdAt">,
+): Promise<void> {
   await collections.analyticsEvents.add({ ...data, createdAt: Date.now() });
 }
 

@@ -196,6 +196,24 @@ service cloud.firestore {
 
 
 
+    // ─── Log collections（書き込みは Cloud Functions のみ / 明示化）─────────────────
+    // incident_logs は管理画面がクライアントから読むため admin 読取を明示（既定denyだと管理タブが壊れる）
+    match /incident_logs/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /audit_logs/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /ai_referrer_logs/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /recommend_logs/{docId} {
+      allow read, write: if false;
+    }
+
     // ─── System collections (Cloud Functions only) ───────────────────────────────
     match /bappy_token_cache/{docId} {
       allow read, write: if false;
