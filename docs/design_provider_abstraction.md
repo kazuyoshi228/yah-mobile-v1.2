@@ -180,24 +180,61 @@ provider = "esimaccess", isActive = false
 
 ---
 
-## 9. Secret（Secret Manager）
+## 9. フロント適合・MyPage 体験改善（Phase3）
+
+発行後の顧客体験を、eSIMAccess の豊富なデータ/Webhook で**能動的・分かりやすく**する。Phase2 の `getEsimDetail`/Webhook に乗せる（＝多くは“ついで”で実現）。
+
+### 9.1 現状（実コード）
+- `mypage/esimStatus.ts`（ready/active/topup/expired 導出）／`ActiveEsimSummary.tsx`・`OrderList.tsx`（カード）／`TopupPage.tsx`／`Notifications.tsx`。
+- `FsNotification.type` に **`data_threshold_80/100` が定義済み（未配線）**。
+- 発行系メール（準備/遅延/失敗）は**日本語ハードコード**。`order.language` 保存基盤は返金で整備済み（流用可）。
+
+### 9.2 A. 発行・インストール（★最有力）
+- **A1 iOS ユニバーサルリンクで1タップ install**：eSIMAccess の `ac`（`LPA:1$SMDP$MATCHINGID`）から Apple の `https://esimsetup.apple.com/esim_qrcode_provisioning?carddata=<ac>` を生成し `esim_link.appleActivationUrl` に保存 → MyPage/発行完了メールに **「iPhoneにインストール」ボタン**。QRスキャン不要＝離脱激減。
+- **A2 QR/アクティベーションを常時再表示**（`qrCodeUrl`/`shortUrl`/`ac`）。再インストール・機種変の救済（eSIMAccessは再インストール可）。
+
+### 9.3 B. データ残量・使用状況（“正確さより分かりやすさ”）
+- **B1 「最終更新 ○時間前」＋更新ボタン**：eSIMAccess の使用量は **2-3時間遅延**。`esim_link.lastUsageUpdateAt` を保存し明示＋「今すぐ更新」（既存 `syncRequestedAt` トリガー or `/esim/usage/query`）。“0なのに減らない”等の誤解防止。
+- **B2 状態写像の精緻化**：`esimStatus`(IN_USE/USED_UP/USED_EXPIRED/UNUSED_EXPIRED/CANCEL…)×`smdpStatus` を分かりやすい状態に。`DOWNLOAD止まり`→「インストール未完了？」サポート導線。
+
+### 9.4 C. Top-up 導線（復活機能を使ってもらう）
+- **C1 枯渇/残少で「データ追加」CTA**：docs 曰く `USED_UP+ENABLED` が最適タイミング。低残量カードに**ワンタップtopup**（eSIMAccessは data0 でも可）。
+- **C2 TopupPage で実データ表示**：`/package/list type=TOPUP`（esimTranNo）で「打てるプラン」を表示（ダミー問題の再発なし）。
+
+### 9.5 D. 能動通知（Webhook ついで＝低コスト）
+- **D1 残量アラート**：`DATA_USAGE`（`remainThreshold` 0.5/0.1）→ **in-app通知＋メール**「残りわずか・topupは」。※既存 `data_threshold_80/100` を eSIMAccess の 50%/10% に合わせ整理（`data_threshold_50/10` 追加 or リネーム）。
+- **D2 期限アラート**：`VALIDITY_USAGE`（残1日）→ 通知「明日で期限・延長は」。
+
+### 9.6 E. その他
+- **E1 発行系メールの5言語化**：`order.language` を流用（返金メールと同型）。準備/遅延/失敗メールを 5言語に（現状 日本語のみ＝外国人顧客に届いていない）。
+- **E2（任意）**：`/esim/sendSms` でインストールリンクSMS送付／機種別インストール手順ガイド。
+
+### 9.7 対象ファイル・段階・優先度
+- functions：`webhooks_esimaccess`（DATA_USAGE/VALIDITY_USAGE→`createNotification`/`sendEmail`）、`getEsimDetail` 正規化で `ac→appleActivationUrl` 生成。
+- client：`ActiveEsimSummary`/`OrderList`（installボタン・最終更新・更新ボタン・topup CTA）、`TopupPage`（実TOPUP）、`Notifications`（新type）、i18n×5。
+- shared：`FsEsimLink` に `activationCode`/`qrCodeUrl`/`shortUrl`/`smdpStatus`/`esimStatus`/`lastUsageUpdateAt`、`FsNotification.type` 整理。
+- **すべて Phase3 に内包**。優先度：**A1（1タップinstall）と D1/D2（残量/期限アラート）が費用対効果 最高**。
+
+---
+
+## 10. Secret（Secret Manager）
 
 `ESIMACCESS_ACCESS_CODE` / `ESIMACCESS_SECRET_KEY` / `ESIMACCESS_WEBHOOK_TOKEN`（秘密URL用）。※**チャット/コミットに貼らない**。
 
 ---
 
-## 10. 実装フェーズ
+## 11. 実装フェーズ
 
 | Phase | 内容 | 変更範囲 | 承認/デプロイ |
 |---|---|---|---|
 | **P1** | Provider抽象（`types.ts`＋`getProvider`）＋Bappy薄ラッパ＋型追加。**呼び出しをgetProvider経由に置換（挙動不変）** | functions＋shared | 要承認・**41テスト全通過で挙動不変担保** |
 | **P2** | eSIMAccess実装（署名・order/query/getEsimDetail・**topup**・cancel・balance）＋**単国JPプラン取込**（`import-esimaccess-plans.mjs`・inactive）＋**PlansTab 2価格（卸USD/小売JPY）表示編集＋活性化**＋`esimaccessWebhook`多層防御（＋柱1でbappyWebhook認証）＋**販売停止ガード**＋返金cancel連携＋Bappy販売停止 | functions/rules/secrets＋plansデータ＋client(PlansTab) | 要承認・secrets登録・本番はユーザー指示 |
-| **P3** | ローンチ前 実注文検証（発行→QR→有効化→topup→cancel/返金）→ GA判定 | 検証 | — |
+| **P3** | **フロント適合・MyPage体験改善（§9）**：A1 1タップinstall／B1 最終更新・更新／C1 topup CTA／D1-D2 残量・期限アラート／E1 発行系メール5言語化 ＋ ローンチ前 実注文検証（発行→QR→有効化→topup→cancel/返金）→ GA判定 | functions＋client＋i18n＋検証 | 要承認・本番はユーザー指示 |
 | （不採用） | 自動フェイルオーバー・代替QR | — | **今回やらない**（自動返金でカバー） |
 
 ---
 
-## 11. テスト／検証・リスク・ロールバック
+## 12. テスト／検証・リスク・ロールバック
 
 - **P1**：既存 functions テスト**41件＋新規（provider委譲）全通過＝挙動不変**（最重要）。
 - **P2**：eSIMAccess clientの署名生成ユニット／order→query→topup→cancel のモック／販売停止ガードのユニット（downで購入弾き）／Webhook多層防御（IP不一致拒否・notifyId冪等・裏取り）。
