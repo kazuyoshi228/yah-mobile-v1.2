@@ -117,8 +117,27 @@ export function getProvider(name?: string | null): EsimProvider;
 
 - `FsOrder.provider?: "esimaccess"|"bappy"|null`（新規販売=esimaccess。未設定=bappy互換）。
 - `FsEsimLink.provider?` ＋ 汎用 `providerRef?`（esimaccess=esimTranNo／bappy=uuid）。既存 `bappyLinkUuid` は残置（読み取り互換）。
-- `FsPlan`：`provider`（既定 esimaccess）＋ `providerPlanId`（packageCode/slug）＋ 既存 `planType`（initial/topup）。
+- `FsPlan`（拡張）：
+  - `provider`（既定 esimaccess）＋ `providerPlanId`（packageCode/slug）＋ 既存 `planType`（initial/topup）。
+  - **価格2種を保持**（下記 §6.1）：`priceJpy`（自社**小売JPY**・既存）＋ **`wholesalePriceUsd`**（eSIMAccess **卸USD**・`price/10000`）。
+  - メタ：`dataGb`/`validityDays`/`network`(IIJ等)/`speed`/`locationCode`/`supportTopUpType`/`fupPolicy`。
 - rules：esim_links/orders は既存どおり Cloud Functions 専用書込。**新フィールド追加のみ**。plans の provider/providerPlanId のバリデーションは Phase2 で最小追加（**要承認**）。
+
+### 6.1 価格モデル（卸USD ＋ 小売JPY の2本立て）
+- **`wholesalePriceUsd`（卸・仕入）**：eSIMAccess の `price`（USD×10000）を `/10000` した値。**取り込み/同期で自動更新**。/admin では**参照＋手動補正可**。
+- **`priceJpy`（小売）**：**自社マージンで決める顧客請求額（Stripe）**。/admin で**設定・変更**。
+- **/admin PlansTab**：両価格を**表示・編集**でき、**マージン**（`priceJpy − wholesalePriceUsd×為替` の目安）も併記して判断しやすく。
+- 🔴 **発注時に価格を送らない**（`/esim/order` の price/amount は任意）→ **卸USDがズレても発注は壊れない**（200005/200006 回避）。＝`wholesalePriceUsd` は**マージン把握のための情報**であって、発注の正しさには使わない。顧客請求は常に `priceJpy`（Stripe）。
+
+### 6.2 プラン取り込み方針（確定）
+1. **まず単国JP（`locationCode=JP`）を取り込む**。多国（Asia/Global）は後日追加。
+2. **取り込みは既定 `isActive:false`（ステージング）**。取り込み時に `wholesalePriceUsd`・メタを埋める。
+3. **販売する数点だけ `isActive:true`＋`priceJpy` 設定**（例：1/3/5/10GB × 7/15/30日 の綺麗なラインナップ。50個並べない）。
+4. **topup プラン**（`type=TOPUP`）も同方式で取り込み（planType=topup）。
+5. **活性プランのSKU生存チェック**：活性の `providerPlanId` が eSIMAccess カタログに存在するか軽く定期確認（or /admin「活性プラン検証」ボタン）。廃止SKU（310241）を指さないように。
+
+### 6.3 取り込みスクリプト
+`scripts/import-esimaccess-plans.mjs`（読み取り→書き込み）：`POST /package/list`（`locationCode=JP`／`type=TOPUP`）→ `plans` へ写像投入（`provider:"esimaccess"`・`providerPlanId`・`planType`・`wholesalePriceUsd`・メタ・**`isActive:false`**）。冪等（`providerPlanId` で upsert）・`--dry` 対応。実行後は /admin PlansTab で活性化＋JPY設定。
 
 ---
 
@@ -153,7 +172,7 @@ export function getProvider(name?: string | null): EsimProvider;
 | Phase | 内容 | 変更範囲 | 承認/デプロイ |
 |---|---|---|---|
 | **P1** | Provider抽象（`types.ts`＋`getProvider`）＋Bappy薄ラッパ＋型追加。**呼び出しをgetProvider経由に置換（挙動不変）** | functions＋shared | 要承認・**41テスト全通過で挙動不変担保** |
-| **P2** | eSIMAccess実装（署名・order/query/getEsimDetail・**topup**・cancel・balance）＋全プラン取込＋`esimaccessWebhook`多層防御（＋柱1でbappyWebhook認証）＋**販売停止ガード**＋返金cancel連携＋Bappy販売停止 | functions/rules/secrets＋plansデータ | 要承認・secrets登録・本番はユーザー指示 |
+| **P2** | eSIMAccess実装（署名・order/query/getEsimDetail・**topup**・cancel・balance）＋**単国JPプラン取込**（`import-esimaccess-plans.mjs`・inactive）＋**PlansTab 2価格（卸USD/小売JPY）表示編集＋活性化**＋`esimaccessWebhook`多層防御（＋柱1でbappyWebhook認証）＋**販売停止ガード**＋返金cancel連携＋Bappy販売停止 | functions/rules/secrets＋plansデータ＋client(PlansTab) | 要承認・secrets登録・本番はユーザー指示 |
 | **P3** | ローンチ前 実注文検証（発行→QR→有効化→topup→cancel/返金）→ GA判定 | 検証 | — |
 | （不採用） | 自動フェイルオーバー・代替QR | — | **今回やらない**（自動返金でカバー） |
 
