@@ -1,6 +1,7 @@
-# SEO 計画書 — yah.mobile
+# SEO & GEO 計画書 — yah.mobile
 
 作成: 2026-07-08 ／ 現状監査に基づく。実装は各ティア着手前に承認（CLAUDE.md）。
+GEO = Generative Engine Optimization（ChatGPT / Perplexity / Google AI Overviews / Gemini / Claude 等の生成AIに**正しく引用される**ための最適化）。§7 参照。
 
 ## 0. 現状監査（実コード）
 
@@ -80,3 +81,44 @@
 ## 6. 「今すぐ進めれる箇所」＝ Tier 1（承認あれば即実装）
 A(hreflang)・F(CSP衛生)・G(OG/sitemap) は**低リスク・高整合**。次回 hosting デプロイに相乗り可能。
 Tier2以降（動的head/プリレンダリング/コンテンツ）は工数が段違いなので、**Tier1実装後に費用対効果を見て個別承認**。
+
+---
+
+# 7. GEO（生成AI最適化）
+
+生成AI（ChatGPT/Perplexity/Google AI Overviews/Gemini/Claude）は「eSIM Japan おすすめ」「Japan eSIM 料金」等の質問に**要約＋引用**で答える。ここで**正確に・好意的に引用される**ための最適化がGEO。SEO（青リンク順位）とは別軸で、旅行系は生成AI経由の流入が急増中。
+
+## 7.0 現状監査（GEO）
+
+**✅ 既にある（強い）**
+- **動的 `llms.txt`**（`functions/src/llmsTxt.ts` → `https://yah.mobi/llms.txt`）：ライブの12プラン・最低価格・返金ポリシー・FAQ・多言語・競合比較を**機械可読**で提供。GEOの理想形。鮮度は `Updated At` 付き。
+- `robots.txt`：`User-agent: *` で全許可＋GPTBot/ClaudeBot/PerplexityBot を明示歓迎。
+- 構造化データ：Product/FAQPage/AggregateRating/Review/Organization。AIが事実抽出しやすい。
+
+**⚠️ 問題・改善余地**
+
+| # | 検出 | 重大度 | 影響 |
+|---|---|---|---|
+| **G-1** | **事実不整合（網）**：サイト全体・`llms.txt`・meta・schema・比較表が **「KDDI (au)」** と記載。だが**現販売プランは6/6 NTT docomo（IIJ）**。`llmsTxt.ts` の "Airalo uses SoftBank / we use KDDI" 比較も誤り | 🔴**最優先** | AIが「KDDI」と誤引用＝信頼失墜／**景表法 優良誤認（→v0.8-2 法務と同一）**。※docomoは日本**最大**網なので訂正はむしろ訴求強化 |
+| G-2 | AIクローラの明示許可が3種のみ | 中 | `*`で許可済だが、`OAI-SearchBot`/`ChatGPT-User`/`Google-Extended`/`Applebot-Extended`/`CCBot`(Common Crawl=多くのLLMの学習源) 等を明示すると取りこぼし減 |
+| G-3 | HowTo構造化データ不在 | 中 | 「how to set up Japan eSIM」系でAIに手順を引用されやすくなる（サイトに"4ステップ"は既にある） |
+| G-4 | `llms-full.txt` 不在 | 低 | llms.txt（索引）＋llms-full.txt（全文）の慣習。より多くを機械可読化 |
+| G-5 | 回答志向コンテンツの厚み | 中 | 「日本 eSIM どれがいい」「対応端末」「エリア」等に**定義＋数値＋比較表**で直接答えるページ＝AI引用の主要素材（Tier3-2と重なる） |
+| G-6 | エンティティ/権威シグナル | 中 | Organizationに`sameAs`(SNS)・外部被引用・レビュー増。AIの「信頼できるエンティティ」判定に効く |
+
+## 7.1 GEO 実行プラン
+
+| ティア | 項目 | 内容 |
+|---|---|---|
+| **即時🔴** | **G-1 事実整合（KDDI→NTT docomo）** | サイトコピー(5言語)・`llmsTxt.ts`・`index.html` meta/schema・比較表の "KDDI/au" を **"NTT docomo"** に統一（docomo=日本最大網として訴求）。**法務(v0.8-2)と同時対応。要承認（functions=llmsTxt含む）** |
+| **Tier1** | G-2 AIクローラ明示許可 | `robots.txt` に OAI-SearchBot / ChatGPT-User / Google-Extended / Applebot-Extended / CCBot / PerplexityBot(既) を Allow で明示 |
+| **Tier1** | G-4 llms-full.txt | 既存 `llmsTxt.ts` を拡張し全文版を配信（任意・低工数） |
+| **Tier1** | G-3 HowTo schema | eSIM設定4ステップを HowTo 構造化データ化（AppPage/index.html） |
+| **Tier3** | G-5 回答志向コンテンツ | SEO Tier3-2 と統合（ガイド/比較/国別ページ）。**AIが抜き出す"数値・表・定義"を正確に** |
+| **Tier3** | G-6 権威 | `sameAs`(SNS)・レビュー・外部リスティングで被引用を増やす（オフページ） |
+
+## 7.2 GEO 計測
+- **実地確認**：ChatGPT/Perplexity/Google(AI Overviews) に「best eSIM for Japan」「Japan eSIM cheap」等を投げ、**yah.mobile が引用されるか・記載が正確か**を定期チェック（無料でできる最重要KPI）。
+- Search Console の「AI Overviews」露出（提供範囲で）も監視。
+
+> **最重要**：G-1（KDDI→docomo）は SEO/GEO/法務すべてに跨る**事実の誤り**。何より先に直すべき。訂正は訴求低下ではなく、**「日本最大のNTT docomo網」への格上げ**になる。

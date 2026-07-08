@@ -5,6 +5,7 @@
 
 ## 計画（進行中）
 - ⭐ [roadmap_to_v1.md](./roadmap_to_v1.md) — **残タスクの単一台帳**（v0.6→v1.0 一般公開・ver別）
+- [seo_plan.md](./seo_plan.md) — SEO & GEO 計画（監査＋Tier別。§7 GEO・網の事実訂正G-1）
 - [design_refactoring_v06.md](./design_refactoring_v06.md) — 大規模リファクタリング v0.6（P0〜P5・完了）
 - [plan_v0.51.md](./plan_v0.51.md) — v0.51 全体計画（ver.1・完了経緯）
 - （アーカイブ）plan_v0.51_v2.md → 残タスクは roadmap_to_v1.md に移管
