@@ -122,3 +122,47 @@ Tier2以降（動的head/プリレンダリング/コンテンツ）は工数が
 - Search Console の「AI Overviews」露出（提供範囲で）も監視。
 
 > **最重要**：G-1（KDDI→docomo）は SEO/GEO/法務すべてに跨る**事実の誤り**。何より先に直すべき。訂正は訴求低下ではなく、**「日本最大のNTT docomo網」への格上げ**になる。
+
+---
+
+# 8. 中国本土向け GEO/SEO（zh-CN 市場）
+
+背景：訪日外国人で**中国は最大級の市場**、zh-CN(簡体字)も実装済み。ただし中国は**検索・AI・インフラが西側と完全に別物**。§7（Google/ChatGPT系）はそのままでは中国本土に効かない。
+
+## 8.0 🔴 最重要の前提：本土アクセス性（他すべての前提）
+
+現スタックは **Google依存が深い**（実測）：
+- **App Check = reCAPTCHA Enterprise（Google）を購入含む6関数で強制**
+- **Firebase Auth / Google ログイン**、**Firestore/Storage = googleapis**、フォント/アセット = storage.googleapis.com
+
+これらは**中国本土で遮断/低速**。結果、本土ユーザーは **(a) サイトが重い/開かない (b) Googleログイン不可 (c) App Check(reCAPTCHA)で購入がブロックされる**可能性が高い。
+
+→ **中国SEO/GEOに投資する前に「本土アクセス性」の方針決定が前提**。選択肢：
+1. **本格参入**：中国国内CDN ＋ **ICP备案**（中国法人/パートナー必須）＋ App Check/認証の中国代替（reCAPTCHA条件付き無効 or 別方式）＋アセット中国配信 ＝ **別プロジェクト級**
+2. **割り切り（推奨・短期）**：**本土は当面対象外**とし、**香港・台湾・海外華人（zh-TW＝非遮断）**にフォーカス。本土は「小红书で認知 → 実利用はVPN/海外」を許容
+3. 段階：まず zh-TW を §7（西側GEO）で獲得しつつ、本土需要を計測してから1を判断
+
+## 8.1 中国の検索/AIエコシステム（西側と別物）
+
+| 西側（§7） | 中国本土（§8） |
+|---|---|
+| Google / Bing | **百度 Baidu**（主）・Sogou・360・Bing・神马 Shenma（モバイル） |
+| ChatGPT / Perplexity / Gemini / Claude | **文心一言（ERNIE/百度）・通义千问（Alibaba）・豆包 Doubao（ByteDance）・Kimi（Moonshot）・DeepSeek・智谱GLM・讯飞星火** |
+| Googlebot / GPTBot / ClaudeBot | **Baiduspider・Bytespider（豆包の主要ソース）・Sogou spider・360Spider・YisouSpider（神马）・PetalBot（Huawei）** |
+| 発見：Google index | **百度index ＋ Bytespider ＋ 小红书/携程/微博/马蜂窝** |
+
+## 8.2 中国 GEO/SEO 実行プラン
+
+| ティア | 項目 | 内容 |
+|---|---|---|
+| 前提🔴 | **本土アクセス性の方針決定** | §8.0。未解決なら本土施策は保留し zh-TW/海外華人へ集中 |
+| Tier1 | **robots に中国クローラ明示** | `Baiduspider`/`Bytespider`/`Sogou web spider`/`360Spider`/`YisouSpider`/`PetalBot` を Allow（§7 G-2 と同時実装可・低リスク） |
+| Tier1 | **百度站长（Baidu Webmaster）登録** | sitemap 提出・所有権確認（最低限のアクセス性がある前提） |
+| Tier1 | **zh-CN の構造化/回答志向コンテンツ完備** | 簡体字で FAQ/価格/対応端末/エリアを数値・表で明示（豆包/文心が抽出しやすく） |
+| Tier2 | **小红书(RED)/携程/马蜂窝/微博** | 中国の旅行意思決定はここが主戦場。旅行ノート/出店＝**口コミ＝中国LLM引用の主素材**。オフページの本命 |
+| Tier2 | **Bytespider 許可＋百度index入り** | 豆包(ByteDance)・文心(百度) に載るための供給側 |
+
+## 8.3 割り切りの提案（現実的ロードマップ）
+- **短期**：**zh-TW（台湾/香港・非遮断）を §7 西側GEO で獲得**。本土は robots で中国クローラを歓迎しつつ「小红书で認知」を軽く始める。
+- **本格参入判断**：ICP + 中国CDN + 認証/AppCheck中国対応は投資判断。本土トラフィック/需要を計測してからGo。
+- ⚠️ **重要**：本土アクセス性を解かないまま zh-CN を強く集客すると「開けない/買えない」体験を量産し逆効果。まず §8.0 の方針を決めること。
