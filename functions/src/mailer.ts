@@ -55,15 +55,47 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
 }
 
 // ─── ユーザー向けメールテンプレート ──────────────────────────────────────────
+//
+// 注文ライフサイクル系メールは order.language（i18n.language）で6言語出し分ける。
+// 未設定/未知は en フォールバック。共通の HTML シェルと言語別コピーで構成する。
 
-/**
- * eSIM準備開始メール（購入直後）
- */
-export function buildEsimPreparedEmail(opts: { orderId: string; planName?: string }): { subject: string; html: string } {
-  const subject = "【yah.mobile】eSIMの準備を開始しました";
-  const html = `
+export type MailLang = "ja" | "en" | "ko" | "zh-CN" | "zh-TW" | "th";
+
+export function normalizeLang(language?: string | null): MailLang {
+  const l = (language ?? "").toLowerCase();
+  if (l.startsWith("ja")) return "ja";
+  if (l.startsWith("ko")) return "ko";
+  if (l === "zh-tw" || l.includes("hant")) return "zh-TW";
+  if (l.startsWith("zh")) return "zh-CN";
+  if (l.startsWith("th")) return "th";
+  return "en";
+}
+
+const FOOTER: Record<MailLang, string> = {
+  ja: `このメールはyah.mobileからの自動送信です。<br>ご不明な点は <a href="https://yah.mobi/app#contact" style="color: #555;">サポートページ</a> よりお問い合わせください。`,
+  en: `This is an automated message from yah.mobile.<br>If you have any questions, please reach us via our <a href="https://yah.mobi/app#contact" style="color: #555;">support page</a>.`,
+  ko: `이 메일은 yah.mobile에서 자동으로 발송되었습니다.<br>문의 사항이 있으시면 <a href="https://yah.mobi/app#contact" style="color: #555;">지원 페이지</a>를 통해 연락해 주세요.`,
+  "zh-CN": `这是来自 yah.mobile 的自动发送邮件。<br>如有任何疑问，请通过我们的<a href="https://yah.mobi/app#contact" style="color: #555;">支持页面</a>与我们联系。`,
+  "zh-TW": `這是來自 yah.mobile 的自動發送郵件。<br>如有任何疑問，請透過我們的<a href="https://yah.mobi/app#contact" style="color: #555;">支援頁面</a>與我們聯絡。`,
+  th: `อีเมลนี้เป็นข้อความอัตโนมัติจาก yah.mobile<br>หากมีคำถาม โปรดติดต่อเราผ่าน<a href="https://yah.mobi/app#contact" style="color: #555;">หน้าฝ่ายสนับสนุน</a>`,
+};
+
+const TONE = {
+  info: { bg: "#f8fafc", border: "#e2e8f0", text: "#334155" },
+  warn: { bg: "#fffbeb", border: "#fde68a", text: "#92400e" },
+  error: { bg: "#fef2f2", border: "#fecaca", text: "#991b1b" },
+  success: { bg: "#f0fdf4", border: "#bbf7d0", text: "#166534" },
+} as const;
+
+/** 全ライフサイクルメール共通の HTML シェル。 */
+function renderEmail(
+  lang: MailLang,
+  o: { title: string; body: string; box: { tone: keyof typeof TONE; html: string }; ctaLabel: string; ctaHref: string },
+): string {
+  const t = TONE[o.box.tone];
+  return `
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="${lang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f8; margin: 0; padding: 20px;">
   <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
@@ -71,107 +103,76 @@ export function buildEsimPreparedEmail(opts: { orderId: string; planName?: strin
       <h1 style="color: #fff; font-size: 20px; margin: 0; letter-spacing: 0.05em;">yah.mobile</h1>
     </div>
     <div style="padding: 32px;">
-      <h2 style="font-size: 18px; color: #111; margin: 0 0 16px;">eSIMの準備を開始しました</h2>
-      <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
-        ご購入ありがとうございます。eSIMの発行処理を開始しました。<br>
-        通常<strong>数分以内</strong>にマイページでQRコードをご確認いただけます。
-      </p>
-      <div style="background: #f8f8f8; border-radius: 6px; padding: 16px; margin: 0 0 24px;">
-        <p style="color: #888; font-size: 12px; margin: 0 0 4px;">注文番号</p>
-        <p style="color: #111; font-size: 14px; font-weight: 600; margin: 0;">#${opts.orderId}</p>
-        ${opts.planName ? `<p style="color: #888; font-size: 12px; margin: 8px 0 4px;">プラン</p><p style="color: #111; font-size: 14px; margin: 0;">${opts.planName}</p>` : ""}
+      <h2 style="font-size: 18px; color: #111; margin: 0 0 16px;">${o.title}</h2>
+      <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">${o.body}</p>
+      <div style="background: ${t.bg}; border: 1px solid ${t.border}; border-radius: 6px; padding: 16px; margin: 0 0 24px;">
+        <p style="color: ${t.text}; font-size: 13px; margin: 0;">${o.box.html}</p>
       </div>
-      <a href="https://yah.mobi/mypage" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 4px; font-size: 14px; font-weight: 500;">
-        マイページを確認する
-      </a>
-      <p style="color: #aaa; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">
-        このメールはyah.mobileからの自動送信です。<br>
-        ご不明な点は <a href="https://yah.mobi/app#contact" style="color: #555;">サポートページ</a> よりお問い合わせください。
-      </p>
+      <a href="${o.ctaHref}" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 4px; font-size: 14px; font-weight: 500;">${o.ctaLabel}</a>
+      <p style="color: #aaa; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">${FOOTER[lang]}</p>
     </div>
   </div>
 </body>
 </html>`;
-  return { subject, html };
+}
+
+type LifecycleCopy = { subject: string; title: string; body: string; box: string; cta: string };
+
+/**
+ * eSIM準備開始メール（購入直後）
+ */
+export function buildEsimPreparedEmail(opts: { orderId: string; planName?: string; language?: string | null }): { subject: string; html: string } {
+  const lang = normalizeLang(opts.language);
+  const orderLine: Record<MailLang, string> = {
+    ja: `🧾 注文番号 #${opts.orderId}`, en: `🧾 Order #${opts.orderId}`, ko: `🧾 주문번호 #${opts.orderId}`,
+    "zh-CN": `🧾 订单号 #${opts.orderId}`, "zh-TW": `🧾 訂單編號 #${opts.orderId}`, th: `🧾 หมายเลขคำสั่งซื้อ #${opts.orderId}`,
+  };
+  const planLabel: Record<MailLang, string> = { ja: "プラン", en: "Plan", ko: "요금제", "zh-CN": "套餐", "zh-TW": "方案", th: "แพ็กเกจ" };
+  const copy: Record<MailLang, LifecycleCopy> = {
+    ja: { subject: "【yah.mobile】eSIMの準備を開始しました", title: "eSIMの準備を開始しました", body: "ご購入ありがとうございます。eSIMの発行処理を開始しました。<br>通常<strong>数分以内</strong>にマイページでQRコードをご確認いただけます。", box: "", cta: "マイページを確認する" },
+    en: { subject: "[yah.mobile] We're preparing your eSIM", title: "We're preparing your eSIM", body: "Thank you for your purchase. We've started issuing your eSIM.<br>Your QR code is usually ready on My Page <strong>within a few minutes</strong>.", box: "", cta: "Go to My Page" },
+    ko: { subject: "[yah.mobile] eSIM을 준비하고 있습니다", title: "eSIM을 준비하고 있습니다", body: "구매해 주셔서 감사합니다. eSIM 발급을 시작했습니다.<br>보통 <strong>몇 분 이내</strong>에 마이페이지에서 QR 코드를 확인하실 수 있습니다.", box: "", cta: "마이페이지 확인하기" },
+    "zh-CN": { subject: "[yah.mobile] 正在为您准备 eSIM", title: "正在为您准备 eSIM", body: "感谢您的购买。我们已开始为您签发 eSIM。<br>通常<strong>几分钟内</strong>即可在“我的页面”查看二维码。", box: "", cta: "前往我的页面" },
+    "zh-TW": { subject: "[yah.mobile] 正在為您準備 eSIM", title: "正在為您準備 eSIM", body: "感謝您的購買。我們已開始為您核發 eSIM。<br>通常<strong>幾分鐘內</strong>即可在「我的頁面」查看 QR 碼。", box: "", cta: "前往我的頁面" },
+    th: { subject: "[yah.mobile] กำลังเตรียม eSIM ของคุณ", title: "กำลังเตรียม eSIM ของคุณ", body: "ขอบคุณสำหรับการสั่งซื้อ เราได้เริ่มออก eSIM ให้คุณแล้ว<br>โดยปกติคุณจะเห็น QR code ในหน้าของฉัน<strong>ภายในไม่กี่นาที</strong>", box: "", cta: "ไปที่หน้าของฉัน" },
+  };
+  const c = copy[lang];
+  const box = orderLine[lang] + (opts.planName ? `<br>${planLabel[lang]}: ${opts.planName}` : "");
+  return { subject: c.subject, html: renderEmail(lang, { title: c.title, body: c.body, box: { tone: "info", html: box }, ctaLabel: c.cta, ctaHref: "https://yah.mobi/mypage" }) };
 }
 
 /**
  * eSIM発行遅延メール（リトライ中）
  */
-export function buildEsimDelayedEmail(opts: { orderId: string }): { subject: string; html: string } {
-  const subject = "【yah.mobile】eSIMの発行に少し時間がかかっています";
-  const html = `
-<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f8; margin: 0; padding: 20px;">
-  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-    <div style="background: #000; padding: 24px 32px;">
-      <h1 style="color: #fff; font-size: 20px; margin: 0; letter-spacing: 0.05em;">yah.mobile</h1>
-    </div>
-    <div style="padding: 32px;">
-      <h2 style="font-size: 18px; color: #111; margin: 0 0 16px;">eSIMの発行に少し時間がかかっています</h2>
-      <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
-        eSIMの発行処理に通常より時間がかかっています。<br>
-        引き続き自動で処理中です。<strong>完了次第メールでお知らせします</strong>。<br>
-        しばらくお待ちください。
-      </p>
-      <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 16px; margin: 0 0 24px;">
-        <p style="color: #92400e; font-size: 13px; margin: 0;">
-          ⏳ 注文番号 #${opts.orderId} の処理中です。通常15分以内に完了します。
-        </p>
-      </div>
-      <a href="https://yah.mobi/mypage" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 4px; font-size: 14px; font-weight: 500;">
-        マイページを確認する
-      </a>
-      <p style="color: #aaa; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">
-        このメールはyah.mobileからの自動送信です。<br>
-        ご不明な点は <a href="https://yah.mobi/app#contact" style="color: #555;">サポートページ</a> よりお問い合わせください。
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
-  return { subject, html };
+export function buildEsimDelayedEmail(opts: { orderId: string; language?: string | null }): { subject: string; html: string } {
+  const lang = normalizeLang(opts.language);
+  const copy: Record<MailLang, LifecycleCopy> = {
+    ja: { subject: "【yah.mobile】eSIMの発行に少し時間がかかっています", title: "eSIMの発行に少し時間がかかっています", body: "eSIMの発行処理に通常より時間がかかっています。<br>引き続き自動で処理中です。<strong>完了次第メールでお知らせします</strong>。<br>しばらくお待ちください。", box: `⏳ 注文番号 #${opts.orderId} の処理中です。通常15分以内に完了します。`, cta: "マイページを確認する" },
+    en: { subject: "[yah.mobile] Your eSIM is taking a little longer", title: "Your eSIM is taking a little longer", body: "Issuing your eSIM is taking longer than usual.<br>We're still processing it automatically and <strong>will email you as soon as it's ready</strong>.<br>Thank you for your patience.", box: `⏳ Order #${opts.orderId} is being processed. This usually completes within 15 minutes.`, cta: "Go to My Page" },
+    ko: { subject: "[yah.mobile] eSIM 발급에 시간이 조금 걸리고 있습니다", title: "eSIM 발급에 시간이 조금 걸리고 있습니다", body: "eSIM 발급 처리가 평소보다 오래 걸리고 있습니다.<br>계속 자동으로 처리 중이며 <strong>완료되는 대로 메일로 알려드리겠습니다</strong>.<br>잠시만 기다려 주세요.", box: `⏳ 주문 #${opts.orderId} 을(를) 처리 중입니다. 보통 15분 이내에 완료됩니다.`, cta: "마이페이지 확인하기" },
+    "zh-CN": { subject: "[yah.mobile] 您的 eSIM 需要更多时间", title: "您的 eSIM 需要更多时间", body: "签发您的 eSIM 所需时间比平常更久。<br>我们仍在自动处理，<strong>完成后会立即通过邮件通知您</strong>。<br>感谢您的耐心等待。", box: `⏳ 订单 #${opts.orderId} 正在处理中，通常在 15 分钟内完成。`, cta: "前往我的页面" },
+    "zh-TW": { subject: "[yah.mobile] 您的 eSIM 需要多一點時間", title: "您的 eSIM 需要多一點時間", body: "核發您的 eSIM 所需時間比平常更久。<br>我們仍在自動處理，<strong>完成後會立即以郵件通知您</strong>。<br>感謝您的耐心等候。", box: `⏳ 訂單 #${opts.orderId} 正在處理中，通常在 15 分鐘內完成。`, cta: "前往我的頁面" },
+    th: { subject: "[yah.mobile] eSIM ของคุณใช้เวลานานขึ้นเล็กน้อย", title: "eSIM ของคุณใช้เวลานานขึ้นเล็กน้อย", body: "การออก eSIM ใช้เวลานานกว่าปกติ<br>เรายังคงดำเนินการโดยอัตโนมัติ และ<strong>จะส่งอีเมลแจ้งทันทีที่เสร็จ</strong><br>ขอบคุณสำหรับความอดทนรอ", box: `⏳ กำลังดำเนินการคำสั่งซื้อ #${opts.orderId} โดยปกติจะเสร็จภายใน 15 นาที`, cta: "ไปที่หน้าของฉัน" },
+  };
+  const c = copy[lang];
+  return { subject: c.subject, html: renderEmail(lang, { title: c.title, body: c.body, box: { tone: "warn", html: c.box }, ctaLabel: c.cta, ctaHref: "https://yah.mobi/mypage" }) };
 }
 
 /**
  * eSIM発行失敗メール（最終失敗）
  */
-export function buildEsimFailedEmail(opts: { orderId: string }): { subject: string; html: string } {
-  const subject = "【yah.mobile】eSIM発行に問題が発生しました";
-  const html = `
-<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f8; margin: 0; padding: 20px;">
-  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-    <div style="background: #000; padding: 24px 32px;">
-      <h1 style="color: #fff; font-size: 20px; margin: 0; letter-spacing: 0.05em;">yah.mobile</h1>
-    </div>
-    <div style="padding: 32px;">
-      <h2 style="font-size: 18px; color: #111; margin: 0 0 16px;">eSIM発行に問題が発生しました</h2>
-      <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
-        誠に申し訳ございません。eSIMの発行に問題が発生しました。<br>
-        サポートチームが確認中です。<strong>解決次第ご連絡いたします</strong>。
-      </p>
-      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 16px; margin: 0 0 24px;">
-        <p style="color: #991b1b; font-size: 13px; margin: 0 0 8px; font-weight: 600;">注文番号 #${opts.orderId}</p>
-        <p style="color: #991b1b; font-size: 13px; margin: 0;">
-          返金対応も可能です。サポートページよりお問い合わせください。
-        </p>
-      </div>
-      <a href="https://yah.mobi/app#contact" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 4px; font-size: 14px; font-weight: 500;">
-        サポートに連絡する
-      </a>
-      <p style="color: #aaa; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">
-        このメールはyah.mobileからの自動送信です。
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
-  return { subject, html };
+export function buildEsimFailedEmail(opts: { orderId: string; language?: string | null }): { subject: string; html: string } {
+  const lang = normalizeLang(opts.language);
+  const copy: Record<MailLang, LifecycleCopy> = {
+    ja: { subject: "【yah.mobile】eSIM発行に問題が発生しました", title: "eSIM発行に問題が発生しました", body: "誠に申し訳ございません。eSIMの発行に問題が発生しました。<br>サポートチームが確認中です。<strong>解決次第ご連絡いたします</strong>。", box: `注文番号 #${opts.orderId} ／ 返金対応も可能です。サポートページよりお問い合わせください。`, cta: "サポートに連絡する" },
+    en: { subject: "[yah.mobile] There was a problem issuing your eSIM", title: "There was a problem issuing your eSIM", body: "We're very sorry — there was a problem issuing your eSIM.<br>Our support team is looking into it and <strong>will get back to you as soon as it's resolved</strong>.", box: `Order #${opts.orderId} — a refund is also available. Please reach us via our support page.`, cta: "Contact support" },
+    ko: { subject: "[yah.mobile] eSIM 발급 중 문제가 발생했습니다", title: "eSIM 발급 중 문제가 발생했습니다", body: "대단히 죄송합니다. eSIM 발급 중 문제가 발생했습니다.<br>지원팀이 확인하고 있으며 <strong>해결되는 대로 연락드리겠습니다</strong>.", box: `주문 #${opts.orderId} — 환불도 가능합니다. 지원 페이지를 통해 문의해 주세요.`, cta: "지원팀에 문의하기" },
+    "zh-CN": { subject: "[yah.mobile] 签发 eSIM 时出现问题", title: "签发 eSIM 时出现问题", body: "非常抱歉，签发您的 eSIM 时出现了问题。<br>我们的支持团队正在核查，<strong>解决后会尽快与您联系</strong>。", box: `订单 #${opts.orderId} — 也可申请退款。请通过我们的支持页面与我们联系。`, cta: "联系客服" },
+    "zh-TW": { subject: "[yah.mobile] 核發 eSIM 時發生問題", title: "核發 eSIM 時發生問題", body: "非常抱歉，核發您的 eSIM 時發生了問題。<br>我們的支援團隊正在確認，<strong>解決後會盡快與您聯絡</strong>。", box: `訂單 #${opts.orderId} — 亦可申請退款。請透過我們的支援頁面與我們聯絡。`, cta: "聯絡客服" },
+    th: { subject: "[yah.mobile] เกิดปัญหาในการออก eSIM", title: "เกิดปัญหาในการออก eSIM", body: "เราขออภัยเป็นอย่างยิ่ง เกิดปัญหาในการออก eSIM ของคุณ<br>ทีมสนับสนุนของเรากำลังตรวจสอบ และ<strong>จะติดต่อกลับทันทีที่แก้ไขเสร็จ</strong>", box: `คำสั่งซื้อ #${opts.orderId} — สามารถขอคืนเงินได้เช่นกัน โปรดติดต่อเราผ่านหน้าฝ่ายสนับสนุน`, cta: "ติดต่อฝ่ายสนับสนุน" },
+  };
+  const c = copy[lang];
+  return { subject: c.subject, html: renderEmail(lang, { title: c.title, body: c.body, box: { tone: "error", html: c.box }, ctaLabel: c.cta, ctaHref: "https://yah.mobi/app#contact" }) };
 }
 
 /**
@@ -293,77 +294,33 @@ export function buildRefundCompletedEmail(opts: {
  * 購入受付メール（決済完了直後・eSIM発行前に送信）。
  * eSIMの発行完了は別途 buildEsimReadyEmail で通知する（2通体制）。
  */
-export function buildPurchaseReceivedEmail(opts: { orderId: string }): { subject: string; html: string } {
-  const subject = "【yah.mobile】ご注文を受け付けました";
-  const html = `
-<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f8; margin: 0; padding: 20px;">
-  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-    <div style="background: #000; padding: 24px 32px;">
-      <h1 style="color: #fff; font-size: 20px; margin: 0; letter-spacing: 0.05em;">yah.mobile</h1>
-    </div>
-    <div style="padding: 32px;">
-      <h2 style="font-size: 18px; color: #111; margin: 0 0 16px;">ご注文を受け付けました ✓</h2>
-      <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
-        ご購入ありがとうございます。お支払いを確認しました。<br>
-        現在eSIMを準備しています。発行が完了しましたら、あらためてご案内メールをお送りします。
-      </p>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 0 0 24px;">
-        <p style="color: #334155; font-size: 13px; margin: 0;">
-          🧾 注文番号 #${opts.orderId} を受け付けました。
-        </p>
-      </div>
-      <a href="https://yah.mobi/mypage" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 4px; font-size: 14px; font-weight: 500;">
-        マイページで状況を確認する
-      </a>
-      <p style="color: #aaa; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">
-        このメールはyah.mobileからの自動送信です。<br>
-        ご不明な点は <a href="https://yah.mobi/app#contact" style="color: #555;">サポートページ</a> よりお問い合わせください。
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
-  return { subject, html };
+export function buildPurchaseReceivedEmail(opts: { orderId: string; language?: string | null }): { subject: string; html: string } {
+  const lang = normalizeLang(opts.language);
+  const copy: Record<MailLang, LifecycleCopy> = {
+    ja: { subject: "【yah.mobile】ご注文を受け付けました", title: "ご注文を受け付けました ✓", body: "ご購入ありがとうございます。お支払いを確認しました。<br>現在eSIMを準備しています。発行が完了しましたら、あらためてご案内メールをお送りします。", box: `🧾 注文番号 #${opts.orderId} を受け付けました。`, cta: "マイページで状況を確認する" },
+    en: { subject: "[yah.mobile] Your order is confirmed", title: "Your order is confirmed ✓", body: "Thank you for your purchase. We've confirmed your payment.<br>We're now preparing your eSIM and will email you again as soon as it's issued.", box: `🧾 Order #${opts.orderId} has been received.`, cta: "Check status on My Page" },
+    ko: { subject: "[yah.mobile] 주문이 접수되었습니다", title: "주문이 접수되었습니다 ✓", body: "구매해 주셔서 감사합니다. 결제를 확인했습니다.<br>현재 eSIM을 준비하고 있으며, 발급이 완료되면 다시 안내 메일을 보내드리겠습니다.", box: `🧾 주문 #${opts.orderId} 이(가) 접수되었습니다.`, cta: "마이페이지에서 상태 확인하기" },
+    "zh-CN": { subject: "[yah.mobile] 您的订单已确认", title: "您的订单已确认 ✓", body: "感谢您的购买。我们已确认您的付款。<br>我们正在为您准备 eSIM，签发完成后会再次通过邮件通知您。", box: `🧾 订单 #${opts.orderId} 已受理。`, cta: "在我的页面查看状态" },
+    "zh-TW": { subject: "[yah.mobile] 您的訂單已確認", title: "您的訂單已確認 ✓", body: "感謝您的購買。我們已確認您的付款。<br>我們正在為您準備 eSIM，核發完成後會再次以郵件通知您。", box: `🧾 訂單 #${opts.orderId} 已受理。`, cta: "在我的頁面查看狀態" },
+    th: { subject: "[yah.mobile] ยืนยันคำสั่งซื้อของคุณแล้ว", title: "ยืนยันคำสั่งซื้อของคุณแล้ว ✓", body: "ขอบคุณสำหรับการสั่งซื้อ เราได้ยืนยันการชำระเงินของคุณแล้ว<br>ขณะนี้เรากำลังเตรียม eSIM และจะส่งอีเมลแจ้งอีกครั้งเมื่อออกให้เรียบร้อย", box: `🧾 รับคำสั่งซื้อ #${opts.orderId} แล้ว`, cta: "ตรวจสอบสถานะในหน้าของฉัน" },
+  };
+  const c = copy[lang];
+  return { subject: c.subject, html: renderEmail(lang, { title: c.title, body: c.body, box: { tone: "info", html: c.box }, ctaLabel: c.cta, ctaHref: "https://yah.mobi/mypage" }) };
 }
 
 /**
  * eSIM発行完了メール（復旧成功）
  */
-export function buildEsimReadyEmail(opts: { orderId: string }): { subject: string; html: string } {
-  const subject = "【yah.mobile】eSIMの発行が完了しました";
-  const html = `
-<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f8; margin: 0; padding: 20px;">
-  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
-    <div style="background: #000; padding: 24px 32px;">
-      <h1 style="color: #fff; font-size: 20px; margin: 0; letter-spacing: 0.05em;">yah.mobile</h1>
-    </div>
-    <div style="padding: 32px;">
-      <h2 style="font-size: 18px; color: #111; margin: 0 0 16px;">eSIMの発行が完了しました ✓</h2>
-      <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
-        お待たせしました。eSIMの発行が完了しました。<br>
-        マイページからQRコードをご確認いただき、設定を行ってください。
-      </p>
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 16px; margin: 0 0 24px;">
-        <p style="color: #166534; font-size: 13px; margin: 0;">
-          ✅ 注文番号 #${opts.orderId} のeSIMが発行されました。
-        </p>
-      </div>
-      <a href="https://yah.mobi/mypage" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 4px; font-size: 14px; font-weight: 500;">
-        マイページでQRコードを確認する
-      </a>
-      <p style="color: #aaa; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">
-        このメールはyah.mobileからの自動送信です。<br>
-        ご不明な点は <a href="https://yah.mobi/app#contact" style="color: #555;">サポートページ</a> よりお問い合わせください。
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
-  return { subject, html };
+export function buildEsimReadyEmail(opts: { orderId: string; language?: string | null }): { subject: string; html: string } {
+  const lang = normalizeLang(opts.language);
+  const copy: Record<MailLang, LifecycleCopy> = {
+    ja: { subject: "【yah.mobile】eSIMの発行が完了しました", title: "eSIMの発行が完了しました ✓", body: "お待たせしました。eSIMの発行が完了しました。<br>マイページからQRコードをご確認いただき、設定を行ってください。", box: `✅ 注文番号 #${opts.orderId} のeSIMが発行されました。`, cta: "マイページでQRコードを確認する" },
+    en: { subject: "[yah.mobile] Your eSIM is ready", title: "Your eSIM is ready ✓", body: "Thanks for waiting — your eSIM has been issued.<br>Open My Page to view your QR code and complete setup.", box: `✅ The eSIM for order #${opts.orderId} has been issued.`, cta: "View QR code on My Page" },
+    ko: { subject: "[yah.mobile] eSIM 발급이 완료되었습니다", title: "eSIM 발급이 완료되었습니다 ✓", body: "기다려 주셔서 감사합니다. eSIM 발급이 완료되었습니다.<br>마이페이지에서 QR 코드를 확인하고 설정을 진행해 주세요.", box: `✅ 주문 #${opts.orderId} 의 eSIM이 발급되었습니다.`, cta: "마이페이지에서 QR 코드 확인하기" },
+    "zh-CN": { subject: "[yah.mobile] 您的 eSIM 已就绪", title: "您的 eSIM 已就绪 ✓", body: "久等了，您的 eSIM 已签发。<br>请在“我的页面”查看二维码并完成设置。", box: `✅ 订单 #${opts.orderId} 的 eSIM 已签发。`, cta: "在我的页面查看二维码" },
+    "zh-TW": { subject: "[yah.mobile] 您的 eSIM 已就緒", title: "您的 eSIM 已就緒 ✓", body: "久等了，您的 eSIM 已核發。<br>請在「我的頁面」查看 QR 碼並完成設定。", box: `✅ 訂單 #${opts.orderId} 的 eSIM 已核發。`, cta: "在我的頁面查看 QR 碼" },
+    th: { subject: "[yah.mobile] eSIM ของคุณพร้อมแล้ว", title: "eSIM ของคุณพร้อมแล้ว ✓", body: "ขอบคุณที่รอ eSIM ของคุณออกให้เรียบร้อยแล้ว<br>เปิดหน้าของฉันเพื่อดู QR code และตั้งค่าให้เสร็จสมบูรณ์", box: `✅ ออก eSIM สำหรับคำสั่งซื้อ #${opts.orderId} แล้ว`, cta: "ดู QR code ในหน้าของฉัน" },
+  };
+  const c = copy[lang];
+  return { subject: c.subject, html: renderEmail(lang, { title: c.title, body: c.body, box: { tone: "success", html: c.box }, ctaLabel: c.cta, ctaHref: "https://yah.mobi/mypage" }) };
 }

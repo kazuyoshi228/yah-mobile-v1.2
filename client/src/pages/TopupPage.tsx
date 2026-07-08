@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import { Spinner } from "@/components/ui/spinner";
 import { callFunction } from "@/lib/callable";
 import { CALLABLE } from "@/lib/callable";
+import { reportHandledError } from "@/lib/errorReporting";
 import type { FsEsimLink, FsPlan } from "../../../shared/types";
 
 
@@ -87,7 +88,10 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
       } else {
         throw new Error("Invalid checkout URL returned.");
       }
-    } catch {
+    } catch (err) {
+      // 実エラーは握り潰さず、原因追跡のため収集へ送る（ユーザー表示は汎用メッセージのまま）。
+      console.error("[topup] checkout failed", err);
+      reportHandledError("topup_checkout", err);
       setCheckoutError(t("common.paymentFailed"));
       setIsPurchasing(false);
       setPurchasingPlanId(null);

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { safeUrl } from "@/lib/utils";
 import type { EsimLink } from "./types";
-import { deriveEsimStatus, formatEsimExpiry } from "./esimStatus";
+import { deriveEsimStatus, esimExpiryLines } from "./esimStatus";
 
 function detectDevice(): "ios" | "android" | "other" {
   const ua = navigator.userAgent.toLowerCase();
@@ -24,8 +24,8 @@ export function ActiveEsimSummary({
 }) {
   const device = detectDevice();
   const esimStatus = deriveEsimStatus(esimLink);
-  // 有効化済み→実期限、未有効化→「Valid for N days · from activation」
-  const expiryDisplay = formatEsimExpiry(esimLink, validityDays);
+  // 有効化済み→実期限、未有効化→「Valid for N days · from activation」＋「Install by …」
+  const expiryLines = esimExpiryLines(esimLink, validityDays);
   const activatedDisplay = esimLink.lastActiveAt
     ? new Date(esimLink.lastActiveAt).toLocaleString("en-US", {
         year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
@@ -53,9 +53,9 @@ export function ActiveEsimSummary({
           {activatedDisplay && (
             <p className="font-sans text-white/40 text-xs mt-1">Activated {activatedDisplay}</p>
           )}
-          {expiryDisplay && (
-            <p className="font-sans text-white/40 text-xs mt-1">{expiryDisplay}</p>
-          )}
+          {expiryLines.map((line) => (
+            <p key={line} className="font-sans text-white/40 text-xs mt-1">{line}</p>
+          ))}
         </div>
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/10 text-white text-[0.6rem] font-sans font-medium tracking-[0.15em] uppercase whitespace-nowrap">
           <span className={`w-1.5 h-1.5 rounded-full ${esimStatus.dotClass} ${esimStatus.pulse ? "animate-pulse" : ""}`} />

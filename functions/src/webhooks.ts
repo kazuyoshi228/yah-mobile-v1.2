@@ -249,7 +249,7 @@ async function handleCheckoutCompleted(session: Record<string, unknown>) {
 
   // 購入受付メール（発行前・即時）。失敗しても発行処理は継続する。
   if (userEmail) {
-    const receivedEmail = buildPurchaseReceivedEmail({ orderId: order.id! });
+    const receivedEmail = buildPurchaseReceivedEmail({ orderId: order.id!, language: order.language });
     await sendEmail({ to: userEmail, ...receivedEmail }).catch((err: unknown) =>
       logger.error(`[handleCheckoutCompleted] Failed to send purchase-received email for order ${order.id}:`, err),
     );
@@ -333,7 +333,7 @@ async function fulfillEsim(orderData: FsOrder) {
 
     const user = await getUserByUid(userId);
     if (user?.email) {
-      const emailContent = buildEsimReadyEmail({ orderId });
+      const emailContent = buildEsimReadyEmail({ orderId, language: orderData.language });
       await sendEmail({ to: user.email, ...emailContent }).catch((err: unknown) =>
         logger.error("[fulfillEsim] Email error:", err)
       );

@@ -29,6 +29,7 @@ import {
   getEsimLinkByUuid,
   createNotification,
   getUserById,
+  getOrderById,
   createRetryJob,
   createIncidentLog,
   getPendingEsimRetryJobs,
@@ -154,7 +155,8 @@ export async function handleProvisioningFailure(
   try {
     const user = await getUserById(ctx.userId);
     if (user?.email) {
-      const { subject, html } = buildEsimDelayedEmail({ orderId: ctx.orderId });
+      const order = await getOrderById(ctx.orderId);
+      const { subject, html } = buildEsimDelayedEmail({ orderId: ctx.orderId, language: order?.language });
       await sendEmail({ to: user.email, subject, html });
       logger.info(`[RetryService] Sent retry-in-progress email to user ${ctx.userId}`);
     }
@@ -248,7 +250,8 @@ export async function processPendingRetries(): Promise<{ processed: number; succ
       try {
         const user = await getUserById(job.userId);
         if (user?.email) {
-          const { subject, html } = buildEsimReadyEmail({ orderId: job.orderId });
+          const order = await getOrderById(job.orderId);
+          const { subject, html } = buildEsimReadyEmail({ orderId: job.orderId, language: order?.language });
           await sendEmail({ to: user.email, subject, html });
           logger.info(`[RetryService] Sent recovery-success email to user ${job.userId}`);
         }
@@ -345,7 +348,8 @@ export async function processPendingRetries(): Promise<{ processed: number; succ
           try {
             const user = await getUserById(job.userId);
             if (user?.email) {
-              const { subject, html } = buildEsimFailedEmail({ orderId: job.orderId });
+              const order = await getOrderById(job.orderId);
+              const { subject, html } = buildEsimFailedEmail({ orderId: job.orderId, language: order?.language });
               await sendEmail({ to: user.email, subject, html });
               logger.info(`[RetryService] Sent final-failure email to user ${job.userId}`);
             }

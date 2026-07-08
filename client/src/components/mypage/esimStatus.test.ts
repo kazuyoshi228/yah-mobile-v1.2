@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveEsimStatus, isLowData, formatEsimExpiry } from "./esimStatus";
+import { deriveEsimStatus, isLowData, esimExpiryLines } from "./esimStatus";
 
 describe("deriveEsimStatus", () => {
   it("未有効化（lastActiveAt無し・status非active）→ ready", () => {
@@ -51,16 +51,35 @@ describe("isLowData", () => {
   });
 });
 
-describe("formatEsimExpiry", () => {
-  it("expiryDate あり → Expires <日時>", () => {
-    const s = formatEsimExpiry({ expiryDate: "2026-08-05T00:30:00Z" }, 7);
-    expect(s).toMatch(/^Expires /);
+describe("esimExpiryLines", () => {
+  it("未有効化＋expiryDate有り（実データ相当）→ Valid for … + Install by …（Expires は出さない）", () => {
+    // eSIMAccess は発行時に expiryDate（インストール期限・約6ヶ月）を返す。未有効化で確定日を Expires 表示しない。
+    const lines = esimExpiryLines(
+      { status: "active", lastActiveAt: null, dataRemainingMb: 1024, dataTotalMb: 1024, expiryDate: "2027-01-04T06:27:43Z" },
+      7,
+    );
+    expect(lines[0]).toBe("Valid for 7 days · from activation");
+    expect(lines[1]).toMatch(/^Install by /);
+    expect(lines.some((l) => l.startsWith("Expires "))).toBe(false);
   });
-  it("expiryDate なし → Valid for N days（validityDays 由来）", () => {
-    expect(formatEsimExpiry({ expiryDate: null }, 7)).toBe("Valid for 7 days · from activation");
+
+  it("有効化済み＋expiryDate有り → Expires <日時>", () => {
+    const lines = esimExpiryLines(
+      { lastActiveAt: 1_700_000_000_000, dataRemainingMb: 4000, dataTotalMb: 5000, expiryDate: "2026-08-05T00:30:00Z" },
+      7,
+    );
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(/^Expires /);
   });
-  it("expiryDate も validityDays も無ければ null", () => {
-    expect(formatEsimExpiry({ expiryDate: null }, null)).toBeNull();
-    expect(formatEsimExpiry({ expiryDate: null }, undefined)).toBeNull();
+
+  it("未有効化＋validityDays のみ → Valid for N days · from activation の1行", () => {
+    expect(esimExpiryLines({ lastActiveAt: null, expiryDate: null }, 7)).toEqual([
+      "Valid for 7 days · from activation",
+    ]);
+  });
+
+  it("情報が無ければ空配列", () => {
+    expect(esimExpiryLines({ lastActiveAt: null, expiryDate: null }, null)).toEqual([]);
+    expect(esimExpiryLines({ lastActiveAt: null, expiryDate: null }, undefined)).toEqual([]);
   });
 });

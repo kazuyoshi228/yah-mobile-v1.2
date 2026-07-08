@@ -29,6 +29,7 @@ vi.mock("./db", () => ({
   getEsimLinkByUuid: vi.fn(),
   createNotification: vi.fn(),
   getUserById: vi.fn(),
+  getOrderById: vi.fn(),
   getPendingEsimRetryJobs: vi.fn(),
   updateRetryJob: vi.fn(),
   resolveIncident: vi.fn(),
@@ -151,7 +152,7 @@ describe("esimRetryService", () => {
       expect(db.createNotification).toHaveBeenCalledWith(
         expect.objectContaining({ type: "order_failed", userId: "user_1" })
       );
-      expect(mailer.buildEsimFailedEmail).toHaveBeenCalledWith({ orderId: "order_1" });
+      expect(mailer.buildEsimFailedEmail).toHaveBeenCalledWith({ orderId: "order_1", language: undefined });
       expect(mailer.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ to: "user@example.com" })
       );
@@ -176,7 +177,7 @@ describe("esimRetryService", () => {
       expect(db.createNotification).toHaveBeenCalledWith(
         expect.objectContaining({ type: "order_fulfilled", userId: "user_1" })
       );
-      expect(mailer.buildEsimReadyEmail).toHaveBeenCalledWith({ orderId: "order_1" });
+      expect(mailer.buildEsimReadyEmail).toHaveBeenCalledWith({ orderId: "order_1", language: undefined });
       expect(mailer.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ to: "user@example.com" })
       );

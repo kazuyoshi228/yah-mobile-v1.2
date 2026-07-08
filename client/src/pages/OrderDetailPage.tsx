@@ -9,7 +9,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { Spinner } from "@/components/ui/spinner";
 import { StatusBadge } from "@/components/StatusBadge";
-import { deriveEsimStatus } from "@/components/mypage/esimStatus";
+import { deriveEsimStatus, esimExpiryLines } from "@/components/mypage/esimStatus";
 import { EsimQr } from "@/components/EsimQr";
 
 import { DataUsageBar } from "@/components/DataUsageBar";
@@ -168,11 +168,17 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const date = new Date(order.createdAt).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
-  const expiryDisplay = esimLink?.expiryDate
-    ? new Date(esimLink.expiryDate).toLocaleString("en-US", {
-        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
-      })
-    : null;
+  // 期限は常に表示。有効化済み→実期限「Expires」、未有効化→「Validity（N days · from activation）」＋「Install by <日付>」。
+  // eSIMAccess は発行時に expiryDate（インストール期限）を返すため、有効化状態で分岐する（esimExpiryLines）。
+  const expiryRows: { label: string; value: string }[] = esimLink
+    ? esimExpiryLines(esimLink, validityDays).map((line) =>
+        line.startsWith("Expires ")
+          ? { label: "Expires", value: line.replace(/^Expires /, "") }
+          : line.startsWith("Install by ")
+            ? { label: "Install by", value: line.replace(/^Install by /, "") }
+            : { label: "Validity", value: line.replace(/^Valid for /, "") },
+      )
+    : [];
   const activatedDisplay = esimLink?.lastActiveAt
     ? new Date(esimLink.lastActiveAt).toLocaleString("en-US", {
         year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
@@ -187,12 +193,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     { label: "Order Date", value: date },
     ...(esimStatus ? [{ label: "eSIM Status", value: esimStatus.label }] : []),
     ...(activatedDisplay ? [{ label: "Activated", value: activatedDisplay }] : []),
-    // 期限は常に表示：有効化済み→実期限日時、未有効化→有効期間（validityDays）
-    ...(expiryDisplay
-      ? [{ label: "Expires", value: expiryDisplay }]
-      : validityDays
-        ? [{ label: "Validity", value: `${validityDays} days · from activation` }]
-        : []),
+    ...expiryRows,
   ];
 
   return (

@@ -49,6 +49,18 @@ function report(kind: string, message: string, stack?: string): void {
   });
 }
 
+/**
+ * try/catch で握ったエラーを明示的に収集へ送る（未処理例外ではないもの）。
+ * Firebase callable 等の `code` があれば message に含める。ユーザー表示とは別に原因を残すため。
+ */
+export function reportHandledError(kind: string, err: unknown): void {
+  const base = err instanceof Error ? err.message : String(err);
+  const code = (err as { code?: unknown })?.code;
+  const message = typeof code === "string" && code ? `[${code}] ${base}` : base;
+  const stack = err instanceof Error ? err.stack : undefined;
+  report(kind, message, stack);
+}
+
 export function initErrorReporting(): void {
   if (typeof window === "undefined") return;
   window.addEventListener("error", (e: ErrorEvent) => {
