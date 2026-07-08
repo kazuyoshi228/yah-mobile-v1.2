@@ -14,6 +14,7 @@ import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { getFirebaseDb } from "@/lib/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 import { labelStyle, bodyStyle } from "./types";
+import { formatTimestampJa } from "@/lib/format";
 
 // ─── 型定義 ─────────────────────────────────────────────────────────────────
 type Order = {
@@ -95,19 +96,9 @@ function GeoBadge({
   );
 }
 
-// ─── タイムスタンプをフォーマット ──────────────────────────────────────────────
-function formatTimestamp(ts: number | { seconds: number } | null | undefined): string {
-  if (!ts) return "—";
-  const ms = typeof ts === "object" && "seconds" in ts ? ts.seconds * 1000 : ts;
-  return new Date(ms).toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
+// ─── タイムスタンプ表示は lib/format.ts に集約（P4-2） ─────────────────────────
+const formatTimestamp = (ts: number | { seconds: number } | null | undefined) =>
+  formatTimestampJa(ts, { withSeconds: true });
 
 // ─── 注文詳細パネル ──────────────────────────────────────────────────────────
 function OrderDetailPanel({

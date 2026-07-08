@@ -25,6 +25,7 @@ import {
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
+import { activeInitialPlansQuery } from "@/lib/queries";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import {
@@ -60,8 +61,8 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
 
   // BaaSネイティブ: plansList Callable を廃止し Firestore 直接参照
   const plansQuery = useMemo(
-    // 初期購入プランのみ（topup を除外）。planType は本番で全プランに設定済み
-    () => query(collection(getFirebaseDb(), "plans"), where("isActive", "==", true), where("planType", "==", "initial")),
+    // 初期購入プランのみ（topup を除外）。クエリ本体は lib/queries.ts に集約（P4-1）
+    () => activeInitialPlansQuery(),
     []
   );
   const { data: dbPlans = [] } = useFirestoreCollection<FsPlan>(() => plansQuery, [plansQuery], { realtime: false });

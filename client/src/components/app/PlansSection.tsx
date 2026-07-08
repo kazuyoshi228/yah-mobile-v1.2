@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, query, where, orderBy, limit } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
+import { activeInitialPlansQuery, latestCurrencyRatesQuery } from "@/lib/queries";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { trackEvent } from "@/lib/analytics";
 import FadeIn from "./FadeIn";
@@ -27,8 +26,8 @@ export default function PlansSection({ onSelectPlan }: PlansSectionProps) {
 
   // BaaS ネイティブ: Callable Function を廃止し Firestore 直接購読に移行（AP-04）
   const plansQuery = useMemo(
-    // 初期購入プランのみ（topup を除外）。planType は本番で全プランに設定済み
-    () => query(collection(getFirebaseDb(), "plans"), where("isActive", "==", true), where("planType", "==", "initial")),
+    // 初期購入プランのみ（topup を除外）。クエリ本体は lib/queries.ts に集約（P4-1）
+    () => activeInitialPlansQuery(),
     []
   );
   const { data: dbPlans = [] } = useFirestoreCollection<FsPlan>(
@@ -36,10 +35,7 @@ export default function PlansSection({ onSelectPlan }: PlansSectionProps) {
     [plansQuery],
     { realtime: false }
   );
-  const ratesQuery = useMemo(
-    () => query(collection(getFirebaseDb(), "currency_rates"), orderBy("updatedAt", "desc"), limit(1)),
-    []
-  );
+  const ratesQuery = useMemo(() => latestCurrencyRatesQuery(), []);
   const { data: ratesData } = useFirestoreCollection<{ id: string; rates: Record<string, number>; updatedAt: number }>(
     () => ratesQuery,
     [ratesQuery],

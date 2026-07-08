@@ -8,13 +8,12 @@ import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { trackEvent, trackPageView } from "@/lib/analytics";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plane, Signal, MessageCircle, Zap, BarChart2, UserCircle, Tag, type LucideIcon } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import Nav from "@/components/Nav";
 import { useIsMobile } from "@/hooks/useMobile";
 import Footer from "@/components/Footer";
 import { ASSETS } from "@/lib/assets";
-import { collection, query, where, orderBy } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
+import { activeInitialPlansQuery } from "@/lib/queries";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import {
   FadeIn,
@@ -31,19 +30,8 @@ const ComparisonTable = lazy(() => import("@/components/app/ComparisonTable"));
 const ContactSection = lazy(() => import("@/components/app/ContactSection"));
 const DeviceChecker = lazy(() => import("@/components/app/DeviceChecker"));
 const ReferenceAccordion = lazy(() => import("@/components/app/ReferenceAccordion"));
-
-const FEATURE_ICONS: Record<string, LucideIcon> = {
-  Plane, Signal, MessageCircle, Zap, BarChart2, UserCircle, Tag,
-};
-
-const FEATURE_KEYS = [
-  { icon: "Tag", key: "bestPrice" },
-  { icon: "Signal", key: "coverage" },
-  { icon: "MessageCircle", key: "support" },
-  { icon: "Zap", key: "activation" },
-  { icon: "BarChart2", key: "tracking" },
-  { icon: "UserCircle", key: "account" },
-] as const;
+const FeaturesSection = lazy(() => import("@/components/app/FeaturesSection"));
+const FaqSection = lazy(() => import("@/components/app/FaqSection"));
 
 // HERO background: MP4 video loop (desktop) / WebP image + lazy video (mobile)
 const HERO_VIDEO = ASSETS.HERO_VIDEO;
@@ -55,7 +43,6 @@ const NATURE_IMG = ASSETS.NATURE_IMG;
 export default function AppPage() {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPlanId, setDrawerPlanId] = useState<string | undefined>(undefined);
   // プラン選択の引き継ぎ用（PlansSection選択／ログイン往復のURLパラメータから復元）
@@ -82,8 +69,8 @@ export default function AppPage() {
 
   // JSON-LD Product Schema 用 — BaaSネイティブ: plansList Callable Function を廃止し Firestore 直接参照に移行（AP-04）
   const allPlansQuery = useMemo(
-    // 初期購入プランのみ（topup を除外）。planType は本番で全プランに設定済み
-    () => query(collection(getFirebaseDb(), "plans"), where("isActive", "==", true), where("planType", "==", "initial")),
+    // 初期購入プランのみ（topup を除外）。クエリ本体は lib/queries.ts に集約（P4-1）
+    () => activeInitialPlansQuery(),
     []
   );
   const { data: allDbPlans = [] } = useFirestoreCollection<FsPlan>(() => allPlansQuery, [allPlansQuery], { realtime: false });
@@ -352,7 +339,6 @@ export default function AppPage() {
     if (planId) trackEvent("plan_select", { planId });
   };
 
-  const faqItems = t("faq.items", { returnObjects: true }) as Array<{ q: string; a: string | React.ReactNode }>;
 
   return (
     <div className="min-h-screen bg-white">
@@ -518,34 +504,9 @@ export default function AppPage() {
       </section>
 
       {/* ─── FEATURES ─── */}
-      <section className="py-24 lg:py-36 bg-white">
-        <div className="container">
-          <FadeIn>
-            <p className="text-black/35 mb-3">{t("features.sectionLabel")}</p>
-            <h2 className="text-black" style={serif("clamp(2.25rem, 4.5vw, 3.75rem)")}>{t("features.title")}</h2>
-          </FadeIn>
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-[#D7D7D7]">
-            {FEATURE_KEYS.map((f, i) => {
-              const Icon = FEATURE_ICONS[f.icon];
-              return (
-                <FadeIn key={i} delay={i * 0.07} className="contents">
-                  <div className="p-8 border-b border-r border-[#D7D7D7]">
-                    <div className="mb-6">
-                      {Icon && <Icon size={40} strokeWidth={1.25} className="text-black" />}
-                    </div>
-                    <h3 className="text-black mb-2" style={{ fontSize: "0.9375rem", fontWeight: 500 }}>
-                      {t(`features.items.${f.key}.title`)}
-                    </h3>
-                    <p className="text-black/50" style={{ fontSize: "0.875rem", lineHeight: 1.75 }}>
-                      {t(`features.items.${f.key}.desc`)}
-                    </p>
-                  </div>
-                </FadeIn>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<div className="py-24 bg-white" />}>
+        <FeaturesSection />
+      </Suspense>
 
       {/* ─── HOW IT WORKS ─── */}
       <Suspense fallback={<div className="py-24 bg-white" />}>
@@ -630,46 +591,9 @@ export default function AppPage() {
       </section>
 
       {/* ─── FAQ ─── */}
-      <section id="faq" className="py-24 lg:py-36 bg-white">
-        <div className="container max-w-3xl">
-          <FadeIn>
-            <p className="text-black/35 mb-3">{t("faq.sectionLabel")}</p>
-            <h2 className="text-black" style={serif("clamp(2rem, 4vw, 3.25rem)")}>{t("faq.title")}</h2>
-          </FadeIn>
-          <div className="mt-12 border-t border-[#D7D7D7]">
-            {faqItems.map((faq, i) => (
-              <FadeIn key={i} delay={i * 0.04}>
-                <div className="border-b border-[#D7D7D7]">
-                  <button
-                    className="w-full flex items-center justify-between py-6 text-left group"
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  >
-                    <span className="text-black group-hover:opacity-50 transition-opacity pr-8" style={{ fontSize: "0.9375rem" }}>
-                      {faq.q}
-                    </span>
-                    <span
-                      className="text-black/35 shrink-0 text-xl transition-transform duration-200"
-                      style={{ transform: openFaq === i ? "rotate(45deg)" : "rotate(0deg)", display: "inline-block" }}
-                    >
-                      +
-                    </span>
-                  </button>
-                  <motion.div
-                    initial={false}
-                    animate={{ height: openFaq === i ? "auto" : 0, opacity: openFaq === i ? 1 : 0 }}
-                    transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                    className="overflow-hidden"
-                  >
-                    <p className="pb-6 text-black/55" style={{ fontSize: "0.9rem", lineHeight: 1.8 }}>
-                      {faq.a}
-                    </p>
-                  </motion.div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<div className="py-24 bg-white" />}>
+        <FaqSection />
+      </Suspense>
 
       {/* ─── CHAT SUPPORT ─── */}
       <section id="chat" className="py-24 lg:py-36 bg-[#F5F5F5] border-t border-[#D7D7D7]">

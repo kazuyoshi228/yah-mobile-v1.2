@@ -9,6 +9,7 @@ import {
   type DocumentData,
 } from "firebase/firestore";
 import { useState, useEffect, useMemo } from "react";
+import { activePlansQuery } from "@/lib/queries";
 import type { EsimLink, OrderRow, EsimPreview, EsimPreviewMap } from "./types";
 
 /**
@@ -26,7 +27,7 @@ export function useMyPageData(uid: string | undefined) {
 
   // 有効期間（validityDays）等を注文の bappyPlanId / planId から引くための plans 索引
   useEffect(() => {
-    const q = query(collection(getFirebaseDb(), "plans"), where("isActive", "==", true));
+    const q = activePlansQuery();
     const unsub = onSnapshot(q, (snap: QuerySnapshot<DocumentData>) => {
       const m = new Map<string, PlanInfo>();
       snap.docs.forEach((d) => {

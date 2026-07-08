@@ -4,6 +4,7 @@ import { Link, useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { onSnapshot, doc, collection, query, where, orderBy } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
+import { activeTopupPlansQuery } from "@/lib/queries";
 import { useAuth } from "@/_core/hooks/useAuth";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -50,8 +51,8 @@ export default function TopupPage({ params }: { params: { esimLinkId: string } }
       setPlansLoading(false);
     }, (error) => {
       console.error("Failed to fetch topup plans", error);
-      // Fallback without sortOrder if index is missing
-      const qFallback = query(collection(getFirebaseDb(), "plans"), where("planType", "==", "topup"), where("isActive", "==", true));
+      // Fallback without sortOrder if index is missing（クエリ本体は lib/queries.ts に集約・P4-1）
+      const qFallback = activeTopupPlansQuery();
       onSnapshot(qFallback, (snapFb) => {
         setPlans(snapFb.docs.map(doc => ({ id: doc.id, ...doc.data() }) as FsPlan));
         setPlansLoading(false);

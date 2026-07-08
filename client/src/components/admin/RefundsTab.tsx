@@ -14,6 +14,7 @@ import { getFirebaseDb } from "@/lib/firebase";
 import { collection, query, where, doc, onSnapshot, setDoc } from "firebase/firestore";
 import { callFunction, CALLABLE } from "@/lib/callable";
 import { labelStyle, bodyStyle } from "./types";
+import { formatTimestampJa } from "@/lib/format";
 
 type RefundOrder = {
   id: string;
@@ -29,13 +30,8 @@ type RefundOrder = {
   createdAt?: number | { seconds: number } | null;
 };
 
-function formatTimestamp(ts: number | { seconds: number } | null | undefined): string {
-  if (!ts) return "—";
-  const ms = typeof ts === "object" && "seconds" in ts ? ts.seconds * 1000 : ts;
-  return new Date(ms).toLocaleString("ja-JP", {
-    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
-  });
-}
+// タイムスタンプ表示は lib/format.ts に集約（P4-2）
+const formatTimestamp = (ts: number | { seconds: number } | null | undefined) => formatTimestampJa(ts);
 
 function RefundStatusBadge({ status }: { status?: string | null }) {
   const s = status ?? "none";

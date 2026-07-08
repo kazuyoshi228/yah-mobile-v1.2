@@ -1,6 +1,5 @@
-import { getFirebaseDb } from "@/lib/firebase";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { latestCurrencyRatesQuery } from "@/lib/queries";
 import { useMemo, useState } from "react";
 
 const AVAILABLE_CURRENCIES = ["JPY", "USD", "EUR", "TWD", "KRW", "THB", "SGD", "GBP", "CNY"];
@@ -12,10 +11,7 @@ const AVAILABLE_CURRENCIES = ["JPY", "USD", "EUR", "TWD", "KRW", "THB", "SGD", "
 export function useCurrency() {
   const [currency, setCurrency] = useState<string>("JPY");
 
-  const ratesQuery = useMemo(
-    () => query(collection(getFirebaseDb(), "currency_rates"), orderBy("updatedAt", "desc"), limit(1)),
-    [],
-  );
+  const ratesQuery = useMemo(() => latestCurrencyRatesQuery(), []);
   const { data: ratesData } = useFirestoreCollection<{ id: string; rates: Record<string, number>; updatedAt: number }>(
     () => ratesQuery,
     [ratesQuery],
