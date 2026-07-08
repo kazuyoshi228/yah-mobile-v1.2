@@ -79,22 +79,6 @@ export function useMyPageData(uid: string | undefined) {
     [esimLinks],
   );
 
-  // アクティブeSIMリスト（fulfilled かつ esimLink がある全注文）
-  // plan を join して planName / validityDays を補完する
-  const activeEsimList = useMemo(() => {
-    if (!orders || !esimLinks) return [];
-    return orders
-      .filter((o) => o.status === "fulfilled")
-      .map((o) => {
-        const link = esimLinks.find((e) => e.orderId === o.id) ?? null;
-        if (!link) return null;
-        const oo = o as unknown as { bappyPlanId?: string; planId?: string };
-        const plan = (oo.bappyPlanId && planMap.get(oo.bappyPlanId)) || (oo.planId && planMap.get(oo.planId)) || null;
-        return { link, planName: plan?.name ?? o.planName ?? null, validityDays: plan?.validityDays ?? null };
-      })
-      .filter((x) => x !== null) as { link: EsimLink; planName: string | null; validityDays: number | null }[];
-  }, [orders, esimLinks, planMap]);
-
   // 注文の planName を plans から解決（古い注文は planName 未保存のため「Japan eSIM」になる）
   const resolvedOrders = useMemo(() => {
     if (!orders) return orders;
@@ -106,5 +90,5 @@ export function useMyPageData(uid: string | undefined) {
     });
   }, [orders, planMap]);
 
-  return { orders: resolvedOrders, ordersLoading, esimLinks, esimByOrderId, activeEsimList };
+  return { orders: resolvedOrders, ordersLoading, esimLinks, esimByOrderId };
 }

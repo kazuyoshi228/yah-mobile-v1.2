@@ -95,6 +95,33 @@ The request was not authorized to invoke this service. The access token could no
 
 ---
 
+## ④ topup後、注文が「3つ」に見えて誤解を招く（topup注文のUX）
+
+### 事実確認（Firestore read-only・2026-07-08 topup実測後）
+- **eSIMは1枚のまま**（`esim_links/26070806270015`）。データは **2048/2048MB に正しく加算** ✓。二重発行なし。
+- 注文レコードは正しく2件：初回 `la66cb…`（fulfilled）＋ topup `gLqzwf…`（fulfilled・同一eSIMに適用）。※ほか、途中放棄の20GB topup（pending・ユーザー非表示済み）が1件。
+- 「3つ目」に見えたのは①マイページ上部の**YOUR eSIMカード**（注文ではない）と、②**topup注文がベース注文と全く同じ見た目**で並ぶこと。
+
+### 原因（UI）
+1. **topupプラン名がベースと同名**：`Japan 1GB 7Days (IIJ)`（eSIMAccessの商品名がベース/topupで同じ）。一覧で見分け不可。
+2. **OrderList / OrderDetailPage が `orderType` を一切参照していない**：topup注文も初回と同じレイアウトで描画。
+3. **topup注文詳細の誤誘導文言**（[OrderDetailPage.tsx:357](client/src/pages/OrderDetailPage.tsx#L357)）：eSIMリンクが（当然）無いため「eSIM details will appear here once your payment is confirmed.」と表示 → **新しいeSIMが届く／再インストールが必要と誤解させる**。
+
+### 改善案（フロントのみ・低リスク）
+1. **TOP-UPバッジ＋表記**：`order.orderType==="topup"` のとき、
+   - OrderList カード：プラン名の横に **「TOP-UP」バッジ**、名前は「Top-up: +1GB (7 days)」風に（`plan.dataGb` から生成 or planName に接頭辞）。
+   - OrderDetailPage：タイトル下に「Data Top-up」表示。
+2. **topup注文詳細を専用表示に**：eSIM未リンク文言の代わりに
+   - 「✓ This top-up has been applied to your eSIM (**+1GB**)」＋ **親注文へのリンク**（`order.esimLinkUuid` → esim_link.orderId で親を特定）。
+   - QR/Activate/インストール導線は**出さない**（適用済みなので不要）。
+3. **（任意・データ変更・要承認）topupプラン6本の name を変更**：`Top-up 1GB (7 days)` 等。注文名・メール・管理画面でも自然に区別される。対象: `TOPUP_PXVVBP156` 等6本の `name` フィールドのみ。
+4. **（ユーザー決定・2026-07-08）マイページ上部の「YOUR eSIM」カードを削除**：注文一覧と重複して「3つ目の注文」に見えるため。ACTIVATE/残量/Top-up導線は注文カード→詳細ページに集約（一覧のfulfilledカードにデータバー・期限あり）。`ActiveEsimSummary.tsx` と `useMyPageData.activeEsimList` を撤去。
+
+> **実施済（2026-07-08）**：1・2・4 実装＋3 は本番 plans 6本を「Top-up XGB YDays (IIJ)」にリネーム適用（Dummyは除外）。
+
+### 観察メモ（仕様として記録）
+- topup適用で eSIMAccess が `expiredTime` を **2027-01-04 → 2026-07-22（＝実行+14日）** に更新した。未有効化のため新UIでは「Install by Jul 22, 2026」と表示される。挙動として妥当だが、topupが期限を短縮し得る点は把握しておく（ヘルプ/FAQに将来反映候補）。
+
 ## 検証計画（共通）
 1. `npx tsc --noEmit -p tsconfig.json`（Node22）
 2. `npx vitest run --config vitest.client.config.ts`（①のテスト追加含む）

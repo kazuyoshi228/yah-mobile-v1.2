@@ -60,14 +60,30 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   }, [orderId, order]);
 
   // 期限「常に表示」用：未有効化時は plan.validityDays を表示するため注文の planId から取得
+  // （topup注文では dataGb を「Data added」表示に使う）
   const [validityDays, setValidityDays] = useState<number | null>(null);
+  const [planDataGb, setPlanDataGb] = useState<number | null>(null);
   useEffect(() => {
     const planId = order?.planId;
-    if (!planId) { setValidityDays(null); return; }
+    if (!planId) { setValidityDays(null); setPlanDataGb(null); return; }
     getDoc(doc(getFirebaseDb(), "plans", planId))
-      .then((snap) => setValidityDays(snap.exists() ? ((snap.data() as { validityDays?: number }).validityDays ?? null) : null))
-      .catch(() => setValidityDays(null));
+      .then((snap) => {
+        const p = snap.exists() ? (snap.data() as { validityDays?: number; dataGb?: number }) : null;
+        setValidityDays(p?.validityDays ?? null);
+        setPlanDataGb(p?.dataGb ?? null);
+      })
+      .catch(() => { setValidityDays(null); setPlanDataGb(null); });
   }, [order]);
+
+  // topup注文：適用先eSIM（esimLinkUuid）から親注文を引き、「適用済み」表示に使う
+  const [parentOrderId, setParentOrderId] = useState<string | null>(null);
+  useEffect(() => {
+    const uuid = order?.esimLinkUuid;
+    if (order?.orderType !== "topup" || !uuid) { setParentOrderId(null); return; }
+    getDoc(doc(getFirebaseDb(), "esim_links", uuid))
+      .then((snap) => setParentOrderId(snap.exists() ? ((snap.data() as { orderId?: string }).orderId ?? null) : null))
+      .catch(() => setParentOrderId(null));
+  }, [order?.esimLinkUuid, order?.orderType]);
 
   const handleSync = useCallback(async () => {
     if (!esimLink?.id || isSyncing) return;
@@ -185,12 +201,15 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
       })
     : null;
   const esimStatus = esimLink ? deriveEsimStatus(esimLink) : null;
+  const isTopup = order.orderType === "topup";
 
   const rows = [
-    { label: "Plan",       value: order.planName ?? "Japan eSIM" },
+    { label: "Plan",       value: order.planName ?? (isTopup ? "Data Top-up" : "Japan eSIM") },
     { label: "Amount",     value: `¥${order.amountJpy?.toLocaleString()}` },
     { label: "Status",     value: <StatusBadge status={order.status} /> },
     { label: "Order Date", value: date },
+    // topup: 追加データ量を表示（eSIM状態系の行は親注文側にのみ出す）
+    ...(isTopup && planDataGb ? [{ label: "Data Added", value: `+${planDataGb} GB` }] : []),
     ...(esimStatus ? [{ label: "eSIM Status", value: esimStatus.label }] : []),
     ...(activatedDisplay ? [{ label: "Activated", value: activatedDisplay }] : []),
     ...expiryRows,
@@ -214,10 +233,15 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
               </span>
             </Link>
 
-            <h2 className="font-sans font-light text-black mb-1 text-[clamp(1.5rem,3vw,2rem)] tracking-[-0.02em]">
-              Order #{order.id}
-            </h2>
-            <p className="font-sans text-black/40 mb-8 text-sm">eSIM Details</p>
+            <div className="flex flex-wrap items-center gap-3 mb-1">
+              <h2 className="font-sans font-light text-black text-[clamp(1.5rem,3vw,2rem)] tracking-[-0.02em]">
+                Order #{order.id}
+              </h2>
+              {isTopup && (
+                <span className="text-label text-[0.6rem] bg-black text-white px-2.5 py-1 tracking-[0.15em]">TOP-UP</span>
+              )}
+            </div>
+            <p className="font-sans text-black/40 mb-8 text-sm">{isTopup ? "Data Top-up" : "eSIM Details"}</p>
 
             <div className="border-t border-black/10 mb-8">
               {rows.map((row, i) => (
@@ -323,6 +347,39 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   </div>
                 )}
               </div>
+            ) : isTopup ? (
+              /* topup注文：新しいeSIMは発行されない（既存eSIMへの追加）。誤解を招く「eSIM発行待ち」表示は出さない */
+              order.status === "fulfilled" ? (
+                <div className="p-6 bg-emerald-50 mb-8">
+                  <p className="font-sans text-emerald-800 text-sm font-medium mb-1">✓ This top-up has been applied to your eSIM.</p>
+                  <p className="font-sans text-emerald-700 text-xs mb-4">
+                    {planDataGb ? `+${planDataGb} GB was added to your existing eSIM. ` : ""}
+                    No new installation is needed — your current eSIM keeps working as is.
+                  </p>
+                  {parentOrderId && (
+                    <Link href={`/mypage/orders/${parentOrderId}`}>
+                      <span className="text-label text-[0.65rem] inline-block bg-black text-white px-5 py-2.5 hover:bg-black/80 transition-colors duration-200 active:scale-[0.97] cursor-pointer">
+                        View your eSIM →
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              ) : order.status === "failed" ? (
+                <div className="p-6 bg-red-50 mb-8">
+                  <p className="font-sans text-red-700 text-sm font-medium mb-1">Top-up failed.</p>
+                  <p className="font-sans text-red-600 text-xs mb-4">A refund has been initiated automatically. Your existing eSIM is unaffected. Please contact support if you have questions.</p>
+                  <a
+                    href="/app#contact"
+                    className="text-label text-[0.6rem] inline-block border border-red-300 text-red-600 px-4 py-2 hover:bg-red-100 transition-colors duration-200"
+                  >
+                    Contact support →
+                  </a>
+                </div>
+              ) : (
+                <div className="p-6 bg-black/3 mb-8">
+                  <p className="font-sans text-black/50 text-sm">Your top-up is being processed and will be applied to your eSIM shortly. No new installation is needed.</p>
+                </div>
+              )
             ) : order.status === "provisioning" ? (
               <div className="p-6 bg-amber-50 mb-8 flex items-start gap-3">
                 <div className="w-4 h-4 border-2 border-amber-400 border-t-amber-700 rounded-full animate-spin shrink-0 mt-0.5" />

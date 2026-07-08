@@ -60,6 +60,9 @@ function OrderCard({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <p className="font-sans font-medium text-black text-[0.9375rem]">{order.planName ?? "Japan eSIM"}</p>
+            {order.orderType === "topup" && (
+              <span className="text-label text-[0.55rem] bg-black text-white px-2 py-0.5 tracking-[0.15em]">TOP-UP</span>
+            )}
             <StatusBadge status={order.status} />
           </div>
           <p className="font-sans text-black/30 text-xs">{date}</p>

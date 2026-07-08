@@ -1,12 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { Spinner } from "@/components/mypage/Spinner";
 import { NotificationBell, NotificationPanel } from "@/components/mypage/Notifications";
-import { ActiveEsimSummary } from "@/components/mypage/ActiveEsimSummary";
 import { OrderList } from "@/components/mypage/OrderList";
 import { ProfileSection } from "@/components/mypage/ProfileSection";
 import { useMyPageData } from "@/components/mypage/useMyPageData";
@@ -20,17 +19,7 @@ export default function MyPage() {
   const { handleLogin, pending: loginPending } = useGoogleLogin({ fallbackHref: "/login?redirect=%2Fmypage" });
 
   // 注文・eSIM のリアルタイム購読と派生データ
-  const { orders, ordersLoading, esimByOrderId, activeEsimList } = useMyPageData(user?.uid);
-
-  const [activeEsimIndex, setActiveEsimIndex] = useState(0);
-  // リスト件数変化時に index を自動補正
-  useEffect(() => {
-    if (activeEsimList.length > 0) {
-      setActiveEsimIndex((i) => Math.min(i, activeEsimList.length - 1));
-    }
-  }, [activeEsimList.length]);
-  const clampedIndex = Math.min(activeEsimIndex, Math.max(0, activeEsimList.length - 1));
-  const activeEsimData = activeEsimList[clampedIndex] ?? null;
+  const { orders, ordersLoading, esimByOrderId } = useMyPageData(user?.uid);
 
   if (loading) {
     return (
@@ -98,63 +87,6 @@ export default function MyPage() {
               </AnimatePresence>
             </div>
           </div>
-
-          {/* アクティブeSIMサマリーカード（複数対応カルーセル） */}
-          {activeEsimList.length > 0 && (
-            <div className="mb-10">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeEsimIndex}
-                  initial={{ opacity: 0, x: 16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -16 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {activeEsimData && (
-                    <ActiveEsimSummary
-                      esimLink={activeEsimData.link}
-                      planName={activeEsimData.planName}
-                      validityDays={activeEsimData.validityDays}
-                      onViewDetail={() => setLocation(`/mypage/orders/${activeEsimData.link.orderId}`)}
-                    />
-                  )}
-                </motion.div>
-              </AnimatePresence>
-
-              {/* 複数eSIMのナビゲーション */}
-              {activeEsimList.length > 1 && (
-                <div className="flex items-center justify-between mt-3">
-                  <button
-                    onClick={() => setActiveEsimIndex((i) => Math.max(0, i - 1))}
-                    disabled={clampedIndex === 0}
-                    className="text-label text-[0.6rem] text-black/40 hover:text-black disabled:opacity-20 transition-colors duration-150 px-2 py-1"
-                  >
-                    ← Prev
-                  </button>
-                  <div className="flex items-center gap-1.5">
-                    {activeEsimList.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveEsimIndex(i)}
-                        className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-                          i === clampedIndex ? "bg-black scale-125" : "bg-black/20 hover:bg-black/40"
-                        }`}
-                        aria-label={`eSIM ${i + 1}`}
-                      />
-                    ))}
-                    <span className="font-sans text-black/30 text-xs ml-2">{clampedIndex + 1} / {activeEsimList.length}</span>
-                  </div>
-                  <button
-                    onClick={() => setActiveEsimIndex((i) => Math.min(activeEsimList.length - 1, i + 1))}
-                    disabled={clampedIndex === activeEsimList.length - 1}
-                    className="text-label text-[0.6rem] text-black/40 hover:text-black disabled:opacity-20 transition-colors duration-150 px-2 py-1"
-                  >
-                    Next →
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* コンテンツ */}
           <div className="mb-10">

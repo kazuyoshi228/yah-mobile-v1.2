@@ -22,6 +22,8 @@ export type OrderRow = {
   status: string;
   amountJpy: number | null;
   createdAt: number;
+  /** "initial" | "topup"。未設定は initial 扱い。topup は一覧/詳細でバッジ表示に使う */
+  orderType?: string | null;
   refundStatus?: string | null;
   refundedAt?: number | null;
 };
