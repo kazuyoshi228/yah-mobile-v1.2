@@ -27,7 +27,7 @@
 
 | 残項目 | 内容 | 状態 |
 |---|---|---|
-| **🔴 プリレンダリング/SSR**（Tier3-1） | **診断で判明**：全言語ルートが同一の英語静的HTMLを配信（title/description/JSON-LDはJS注入）。**Naver(Yeti)や非JSクローラに韓国語/繁体字が届かない**。Googleはレンダリングで概ね拾うが、Naver/Yahoo Taiwan(Bing系)には弱い。→ 主要ページを言語別に静的HTML化（vike/react-snap等） | ⏳ 本命・大工数 |
+| **プリレンダリング**（Tier3-1） | Puppeteerビルド後プリレンダ実装済み。公開8ルート(/app・/{lang}/app×4・法務3)を言語別静的HTML化。dev検証：生HTMLに言語別 title/本文/hreflang(8)焼込み確認・各言語で正常描画。**本番反映は別途デプロイ指示待ち**（`npm run build && node scripts/prerender.mjs` → `firebase deploy --only hosting`） | ✅ 実装/dev検証済 → 🔲本番反映 |
 | **専用OG画像 1200×630** | 現状は暫定でヒーロー画像流用。ブランドOGを作成しStorage公開 | 🔲 画像用意 |
 | **Search Console / Naver Search Advisor / 百度站长 登録** | 計測＋各エンジンにsitemap提出（韓国=Naver必須） | 🔲 あなた |
 | 動的head（Tier2） | react-helmet等で言語別 title/description/canonical（CSRのままの緩和策） | 後日判断 |
