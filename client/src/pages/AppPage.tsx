@@ -98,7 +98,7 @@ export default function AppPage() {
     htmlEl.setAttribute("lang", lang);
 
     // Title
-    document.title = t("seo.title", "yah.mobile — Japan eSIM for Travelers | From ¥990");
+    document.title = t("seo.title", "yah.mobile — Japan eSIM for Travelers");
 
     // Meta description
     let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
