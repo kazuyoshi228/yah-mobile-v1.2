@@ -118,10 +118,16 @@ export default function AppPage() {
     }
     metaKw.content = t("seo.keywords");
 
-    // Canonical
-    const canonicalUrl = i18n.language === "ko" ? "https://yah.mobi/ko/app"
-      : i18n.language === "zh-CN" ? "https://yah.mobi/zh-CN/app"
-      : "https://yah.mobi/app";
+    // 言語→ルート（sitemap と一致・全5言語）
+    const LANG_PATHS: Record<string, string> = {
+      en: "https://yah.mobi/app",
+      ko: "https://yah.mobi/ko/app",
+      "zh-CN": "https://yah.mobi/zh-CN/app",
+      "zh-TW": "https://yah.mobi/zh-TW/app",
+      th: "https://yah.mobi/th/app",
+    };
+    // Canonical（言語別 self-referencing）
+    const canonicalUrl = LANG_PATHS[lang] ?? LANG_PATHS.en;
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement("link");
@@ -130,14 +136,17 @@ export default function AppPage() {
     }
     canonical.href = canonicalUrl;
 
-    // hreflang alternates
+    // hreflang alternates（全5言語＋簡繁エイリアス＋x-default）
     document.querySelectorAll('link[rel="alternate"][hreflang]').forEach(el => el.remove());
     const hreflangs = [
-      { hreflang: "en", href: "https://yah.mobi/app" },
-      { hreflang: "zh-CN", href: "https://yah.mobi/zh-CN/app" },
-      { hreflang: "zh-Hans", href: "https://yah.mobi/zh-CN/app" },
-      { hreflang: "ko", href: "https://yah.mobi/ko/app" },
-      { hreflang: "x-default", href: "https://yah.mobi/app" },
+      { hreflang: "en", href: LANG_PATHS.en },
+      { hreflang: "ko", href: LANG_PATHS.ko },
+      { hreflang: "zh-CN", href: LANG_PATHS["zh-CN"] },
+      { hreflang: "zh-Hans", href: LANG_PATHS["zh-CN"] },
+      { hreflang: "zh-TW", href: LANG_PATHS["zh-TW"] },
+      { hreflang: "zh-Hant", href: LANG_PATHS["zh-TW"] },
+      { hreflang: "th", href: LANG_PATHS.th },
+      { hreflang: "x-default", href: LANG_PATHS.en },
     ];
     hreflangs.forEach(({ hreflang, href }) => {
       const link = document.createElement("link");
@@ -152,7 +161,7 @@ export default function AppPage() {
       "og:title": t("seo.ogTitle"),
       "og:description": t("seo.ogDescription"),
       "og:url": canonicalUrl,
-      "og:locale": lang === "ko" ? "ko_KR" : lang === "zh-CN" ? "zh_CN" : lang === "zh-TW" ? "zh_TW" : "en_US",
+      "og:locale": lang === "ko" ? "ko_KR" : lang === "zh-CN" ? "zh_CN" : lang === "zh-TW" ? "zh_TW" : lang === "th" ? "th_TH" : "en_US",
     };
     Object.entries(ogTags).forEach(([property, content]) => {
       let el = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
