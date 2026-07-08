@@ -8,7 +8,8 @@
 - ✅ **topupリトライ不具合 修正済み**（本番反映）
 - ✅ **v0.8 完了**：チャット設置（chat.yah.mobi）／特商法整備（ボンファイア株式会社・運営統括責任者=山田一慶・連絡先 chat＋contact@mail.yah.mobi）／返金ポリシー一貫性／**網の事実訂正（KDDI→NTT docomo）**
 - ✅ 返金（Lane A/B・5言語メール）／可観測性（Error Reporting＋S9到達＋S10死活）／運用ランブック
-- ⚠️ **未検証**：実発注の通し（実購入→発行→QR→返金）は**まだ一度も実施していない**
+- ✅ **実発注E2E(0.7-1)成功（2026-07-08）**：実購入 `#la66cbNQt1azrnf9JwWx`（1GB/¥980 IIJ）→発行→QR→**実接続まで確認**
+- ✅ **実発注で判明した改善3件を修正**（dev）：①eSIM期限表示（未有効化は Valid for/Install by）②topupエラー可視化 ③受付/発行メール6言語化。**topup全失敗の原因（Cloud Run allUsers invoker欠落→401）は本番IAMで復旧済み**
 - ⚠️ **招待制ゲートON**：`allowed_emails` に無いユーザーは購入不可（＝一般公開前）
 
 ---
@@ -16,9 +17,10 @@
 ## v0.7 残り — 「動くことを証明する」
 | # | 項目 | 内容・指示 | 担当 | 状態 |
 |---|---|---|---|---|
-| **0.7-1** | **実発注 E2E 検証**（最優先） | 招待済み自アカウントで **1GB/¥980 を実購入** → ①発行 ②QR/インストール・期限 ③`esim_links` に `provider:"esimaccess"`/`iccid`/`lpaProfile`/`providerRef` ④同期（`onEsimSyncRequested`）⑤残量アラート（`DATA_USAGE`/`VALIDITY_USAGE`）⑥topup（データ枯渇要・後回し可）⑦cancel→Stripe返金→返金メール | **あなた購入**／私検証 | ⏳ 未実施 |
+| **0.7-1** | **実発注 E2E 検証** | ①発行 ②QR/インストール ③`esim_links`（esimaccess/iccid/lpa/providerRef）④同期 まで**成功確認済み**。⑤残量アラート・⑥topup・⑦cancel→返金 は本番修正後に再確認 | あなた購入/私検証 | ✅ 主要導線OK（topup再テスト待ち） |
+| **0.7-2** | **実発注後の改善3件**（dev反映済） | ①期限表示 ②メール6言語 ③topupエラー可視化 ＋ topup IAM復旧（本番済） | 私 | ✅ dev / 🔲 本番反映（hosting＋functions）待ち |
 
-> 監視（残高/死活/返金/通知）はデプロイ後の基本疎通は確認済み。**0.7-1 の実発注で最終確認**。
+> 監視（残高/死活/返金/通知）は基本疎通確認済み。**topup を本番で1度通し（Stripeまで）確認**すれば決済系は完了。
 
 ---
 
