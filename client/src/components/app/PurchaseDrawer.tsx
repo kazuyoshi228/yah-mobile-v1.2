@@ -36,7 +36,11 @@ import {
 } from "./types";
 import { useCurrency } from "./purchase-drawer/useCurrency";
 import { usePurchaseCheckout } from "./purchase-drawer/usePurchaseCheckout";
-import { PurchaseDrawerContext, type PurchaseDrawerCtx } from "./purchase-drawer/context";
+import {
+  PurchaseFlowContext, type PurchaseFlowCtx,
+  PurchaseSessionContext, type PurchaseSessionCtx,
+  PurchaseCheckoutContext, type PurchaseCheckoutCtx,
+} from "./purchase-drawer/context";
 import { Step0Duration } from "./purchase-drawer/steps/Step0Duration";
 import { Step1Data } from "./purchase-drawer/steps/Step1Data";
 import { Step2Confirm } from "./purchase-drawer/steps/Step2Confirm";
@@ -197,18 +201,24 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
     purchaseError, isPurchasing, handlePurchase,
   } = usePurchaseCheckout(currentOpt ?? null, user);
 
-  // 各ステップ部品へ渡す共有コンテキスト
-  const ctxValue: PurchaseDrawerCtx = {
+  // 各ステップ部品へ渡す共有コンテキスト（P5: flow / session / checkout に3分割。
+  // 状態の持ち主とロジックは従来どおり本体・useCurrency・usePurchaseCheckout のまま）
+  const flowValue: PurchaseFlowCtx = {
     step, setStep,
     drawerDays, setDrawerDays, drawerGb, setDrawerGb, planDays, planOptions, currentOpt, lastPlanOpt,
+    initialPlanId,
+  };
+  const sessionValue: PurchaseSessionCtx = {
     currency, setCurrency, AVAILABLE_CURRENCIES, formatPrice,
-    isAuthenticated, loading, user, initialPlanId,
-    esimLink, esimLoading,
+    isAuthenticated, loading, user,
+  };
+  const checkoutValue: PurchaseCheckoutCtx = {
     termsConsented, setTermsConsented, termsConsentError, setTermsConsentError,
     privacyConsented, setPrivacyConsented, privacyConsentError, setPrivacyConsentError,
     marketingConsented, setMarketingConsented,
     refundConsented, setRefundConsented, refundConsentError, setRefundConsentError,
     purchaseError, isPurchasing, handlePurchase,
+    esimLink, esimLoading,
   };
 
   return (
@@ -282,15 +292,19 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
             >
-              <PurchaseDrawerContext.Provider value={ctxValue}>
-                {step === 0 && <Step0Duration />}
-                {step === 1 && <Step1Data />}
-                {step === 2 && <Step2Confirm />}
-                {step === 3 && <Step3Login />}
-                {step === 4 && <Step4Payment />}
-                {step === 5 && <Step5Complete />}
-                {step === 6 && <Step6Esim />}
-              </PurchaseDrawerContext.Provider>
+              <PurchaseFlowContext.Provider value={flowValue}>
+                <PurchaseSessionContext.Provider value={sessionValue}>
+                  <PurchaseCheckoutContext.Provider value={checkoutValue}>
+                    {step === 0 && <Step0Duration />}
+                    {step === 1 && <Step1Data />}
+                    {step === 2 && <Step2Confirm />}
+                    {step === 3 && <Step3Login />}
+                    {step === 4 && <Step4Payment />}
+                    {step === 5 && <Step5Complete />}
+                    {step === 6 && <Step6Esim />}
+                  </PurchaseCheckoutContext.Provider>
+                </PurchaseSessionContext.Provider>
+              </PurchaseFlowContext.Provider>
             </motion.div>
           </AnimatePresence>
         </div>

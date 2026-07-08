@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 import type { PlanOption } from "../../types";
-import { usePurchaseDrawerCtx } from "../context";
+import { usePurchaseFlow } from "../context";
 
 export function Step1Data() {
   const { t } = useTranslation();
-  const { drawerDays, planOptions, setDrawerGb, setStep } = usePurchaseDrawerCtx();
+  const { drawerDays, planOptions, setDrawerGb, setStep } = usePurchaseFlow();
 
   return (
     <div>

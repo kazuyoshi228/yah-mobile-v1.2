@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { LogIn, CheckCircle2 } from "lucide-react";
-import { usePurchaseDrawerCtx } from "../context";
+import { usePurchaseFlow, usePurchaseSession } from "../context";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 
 export function Step3Login() {
   const { t } = useTranslation();
-  const { loading, isAuthenticated, user, setStep, initialPlanId, currentOpt, drawerDays, drawerGb } = usePurchaseDrawerCtx();
+  const { setStep, initialPlanId, currentOpt, drawerDays, drawerGb } = usePurchaseFlow();
+  const { loading, isAuthenticated, user } = usePurchaseSession();
 
   // ログイン往復で選択プランが失われないよう、plan/days/gb を redirect URL に含める
   // （ポップアップがブロックされた場合のフォールバック先。通常はページ遷移なしでログイン）

@@ -2,11 +2,11 @@ import { useTranslation } from "react-i18next";
 import { DrawerClose } from "@/components/ui/drawer";
 import { safeUrl } from "@/lib/utils";
 import { EsimQr } from "@/components/EsimQr";
-import { usePurchaseDrawerCtx } from "../context";
+import { usePurchaseCheckoutCtx } from "../context";
 
 export function Step6Esim() {
   const { t } = useTranslation();
-  const { esimLoading, esimLink } = usePurchaseDrawerCtx();
+  const { esimLoading, esimLink } = usePurchaseCheckoutCtx();
 
   return (
     <div>

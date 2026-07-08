@@ -1,16 +1,17 @@
 import { useTranslation } from "react-i18next";
-import { usePurchaseDrawerCtx } from "../context";
+import { usePurchaseFlow, usePurchaseSession, usePurchaseCheckoutCtx } from "../context";
 
 export function Step4Payment() {
   const { t } = useTranslation();
+  const { currentOpt, drawerDays, setStep } = usePurchaseFlow();
+  const { AVAILABLE_CURRENCIES, currency, setCurrency, formatPrice } = usePurchaseSession();
   const {
-    currentOpt, drawerDays, AVAILABLE_CURRENCIES, currency, setCurrency, formatPrice,
     termsConsented, setTermsConsented, termsConsentError, setTermsConsentError,
     privacyConsented, setPrivacyConsented, privacyConsentError, setPrivacyConsentError,
     marketingConsented, setMarketingConsented,
     refundConsented, setRefundConsented, refundConsentError, setRefundConsentError,
-    purchaseError, isPurchasing, handlePurchase, setStep,
-  } = usePurchaseDrawerCtx();
+    purchaseError, isPurchasing, handlePurchase,
+  } = usePurchaseCheckoutCtx();
 
   return (
     <div>

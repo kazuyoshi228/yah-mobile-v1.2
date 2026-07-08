@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { DrawerClose } from "@/components/ui/drawer";
-import { usePurchaseDrawerCtx } from "../context";
+import { usePurchaseFlow } from "../context";
 
 export function Step0Duration() {
   const { t } = useTranslation();
-  const { lastPlanOpt, planDays, setDrawerDays, setDrawerGb, setStep } = usePurchaseDrawerCtx();
+  const { lastPlanOpt, planDays, setDrawerDays, setDrawerGb, setStep } = usePurchaseFlow();
 
   return (
     <div>

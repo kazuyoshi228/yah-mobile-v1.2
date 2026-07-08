@@ -1,12 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { usePurchaseDrawerCtx } from "../context";
+import { usePurchaseFlow, usePurchaseSession } from "../context";
 
 export function Step2Confirm() {
   const { t } = useTranslation();
-  const {
-    currentOpt, drawerDays, AVAILABLE_CURRENCIES, currency, setCurrency, formatPrice,
-    setStep, isAuthenticated,
-  } = usePurchaseDrawerCtx();
+  const { currentOpt, drawerDays, setStep } = usePurchaseFlow();
+  const { AVAILABLE_CURRENCIES, currency, setCurrency, formatPrice, isAuthenticated } = usePurchaseSession();
 
   if (!currentOpt) return null;
 
