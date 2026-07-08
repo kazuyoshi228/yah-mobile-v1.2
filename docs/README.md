@@ -4,9 +4,10 @@
 実コードと記述が食い違う場合は**実コードを優先**。
 
 ## 計画（進行中）
-- [plan_v0.51.md](./plan_v0.51.md) — v0.51 全体計画（ver.1）
-- [plan_v0.51_v2.md](./plan_v0.51_v2.md) — v0.51 残タスク（最新・柱2進捗反映）
-- [design_refactoring_v06.md](./design_refactoring_v06.md) — 大規模リファクタリング v0.6（P0〜P5）
+- ⭐ [roadmap_to_v1.md](./roadmap_to_v1.md) — **残タスクの単一台帳**（v0.6→v1.0 一般公開・ver別）
+- [design_refactoring_v06.md](./design_refactoring_v06.md) — 大規模リファクタリング v0.6（P0〜P5・完了）
+- [plan_v0.51.md](./plan_v0.51.md) — v0.51 全体計画（ver.1・完了経緯）
+- （アーカイブ）plan_v0.51_v2.md → 残タスクは roadmap_to_v1.md に移管
 
 ## 運用ランブック（恒久）
 - [runbook_solo_ops.md](./runbook_solo_ops.md) — solo運用（障害/返金/デプロイ/復旧）
