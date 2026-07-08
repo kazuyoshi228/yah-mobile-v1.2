@@ -22,17 +22,16 @@
 
 ---
 
-## SEO / GEO（詳細: [seo_plan.md](./seo_plan.md)）— Tier1 は私が即実装可
-| 項目 | 内容 | 状態 |
+## SEO / GEO（詳細: [seo_plan.md](./seo_plan.md)）
+**✅ Tier1 完了・本番反映（2026-07-08）**：hreflang 5言語整合／OG画像復旧(暫定)／robots に AI・Naver(Yeti)・中国クローラ明示／HowTo構造化データ／sitemap lastmod。
+
+| 残項目 | 内容 | 状態 |
 |---|---|---|
-| **OG画像 403 修正**（T1-2） | 本番 `og-image.png` が403でSNS/AIプレビュー画像なし。既存公開画像に暫定差替 or 1200×630用意 | ⏳ 要対応 |
-| **hreflang整合**（A） | index.html hreflang/JSON-LD を実5言語(en/ko/zh-CN/zh-TW/th)へ（現状 en/ja で不整合） | ⏳ Tier1 |
-| **AIクローラ明示**（G-2＋§8） | robots に OAI-SearchBot/Google-Extended/Applebot-Extended/CCBot ＋ 中国 Baiduspider/Bytespider/360/YisouSpider/PetalBot を Allow | ⏳ Tier1 |
-| **HowTo構造化データ**（G-3） | eSIM設定4ステップを HowTo schema 化（AI引用向け） | ⏳ Tier1 |
-| **sitemap lastmod**（T1-3） | lastmod付与・法務ページ追加 | ⏳ Tier1 |
-| 動的head/プリレンダリング（Tier2/3） | 言語別metaやSSG＝SEO最大レバー・大工数 | 後日判断 |
+| **🔴 プリレンダリング/SSR**（Tier3-1） | **診断で判明**：全言語ルートが同一の英語静的HTMLを配信（title/description/JSON-LDはJS注入）。**Naver(Yeti)や非JSクローラに韓国語/繁体字が届かない**。Googleはレンダリングで概ね拾うが、Naver/Yahoo Taiwan(Bing系)には弱い。→ 主要ページを言語別に静的HTML化（vike/react-snap等） | ⏳ 本命・大工数 |
+| **専用OG画像 1200×630** | 現状は暫定でヒーロー画像流用。ブランドOGを作成しStorage公開 | 🔲 画像用意 |
+| **Search Console / Naver Search Advisor / 百度站长 登録** | 計測＋各エンジンにsitemap提出（韓国=Naver必須） | 🔲 あなた |
+| 動的head（Tier2） | react-helmet等で言語別 title/description/canonical（CSRのままの緩和策） | 後日判断 |
 | **中国本土アクセス性**（§8.0🔴） | Google依存(App Check/reCAPTCHA/Auth/googleapis)で本土遮断の恐れ。ICP+中国CDN+認証中国対応 or「本土は当面対象外」判断 | 🔲 方針決定要 |
-| Search Console / 百度站长 登録（Tier4） | 計測の土台 | 🔲 あなた |
 
 ---
 
