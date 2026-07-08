@@ -21,7 +21,7 @@ Tier1＋プリレンダリングは本番反映済み。残りは以下。
 | ~~Google Search Console 登録~~ | sitemap `https://yah.mobi/sitemap.xml` 提出 | ✅ 完了（2026-07-08） |
 | **Naver Search Advisor / 百度站长 登録** | **現地携帯電話が必要で登録不可**（Naver=韓国番号／百度=中国番号）。→ ①**Bing Webmaster Tools**（電話不要・Yahoo Taiwan/一部Bing系に有効）で代替登録 ②Naver/百度はプリレンダ済のため**オーガニック巡回に委ねる**（sitemap提出なしでもクロール可）③必要なら現地パートナー経由。百度は §8.0「中国本土対象外」判断と整合 | ⚠️ 登録不可→Bing代替＋オーガニック |
 | 動的head（Tier2） | react-helmet等で言語別 title/description/canonical（CSRのままの緩和策） | 後日判断（プリレンダで主目的は達成） |
-| **中国本土アクセス性**（§8.0🔴） | Google依存(App Check/reCAPTCHA/Auth/googleapis)で本土遮断の恐れ。ICP+中国CDN+認証中国対応 or「本土は当面対象外」判断 | 🔲 方針決定要 |
+| ~~中国本土アクセス性~~（§8.0） | **✅ 方針確定（2026-07-08）：本土は対象外・香港/台湾/海外華人にフォーカス**（zh-TW=非遮断・既存実装で対応・ICP/中国CDN/百度不要）。zh-CN(簡体)は残す（SG/MY華人＋旅行中）。本格参入(ICP等)は本土需要の計測後に再判断 | ✅ 決定済（追加コード不要） |
 
 ---
 
