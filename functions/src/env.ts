@@ -18,7 +18,10 @@ export const ENV = {
   // Email (Gmail)
   gmailUser: process.env.GMAIL_USER ?? "",
   gmailPass: process.env.GMAIL_PASS ?? "",
-  mailFrom: process.env.MAIL_FROM ?? "yah.mobile <noreply@yah.mobi>",
+  // From は Workspace 登録ドメイン(mail.yah.mobi)のアドレスにする。
+  // 素の yah.mobi は Workspace 未登録のため SMTP relay の「自ドメイン内のみ」で拒否される。
+  // mail.yah.mobi は DKIM/SPF/DMARC 設定済み → relay 通過かつ DMARC pass（到達率最良）。
+  mailFrom: process.env.MAIL_FROM ?? "yah.mobile <contact@mail.yah.mobi>",
 
   // Owner
   ownerEmail: (process.env.OWNER_EMAIL ?? "").toLowerCase(),

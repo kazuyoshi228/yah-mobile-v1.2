@@ -20,13 +20,14 @@ export interface SendEmailOptions {
 }
 
 /**
- * nodemailer を使用して Gmail SMTP（smtp.gmail.com）経由でメールを送信する。
+ * nodemailer を使用して Google Workspace SMTP relay 経由でメールを送信する。
  *
- * 認証は GMAIL_USER / GMAIL_PASS（アプリパスワード）。上限 ~2,000通/日（Workspace）。
- * 現行規模（招待制・GA前・~66通/日）では十分。5k〜10k人/月に伸びた段階で
- * smtp-relay.gmail.com（~10,000通/日）への切替を検討する（DKIM/SPF/DMARC・relay設定は
- * 準備済み。切替は transport の host/port 差し替えのみ。詳細 docs/design_smtp_relay.md）。
- * 送信失敗時は例外をスローする。
+ * smtp.gmail.com（service:"gmail"・~2,000通/日）ではなく smtp-relay.gmail.com（~10,000通/日）を使う。
+ * 認証は既存の GMAIL_USER / GMAIL_PASS（アプリパスワード）を継続利用（Secret追加なし）。
+ * 前提: 管理コンソールで SMTP リレー サービスを有効化（SMTP認証+TLS要求）。
+ * ⚠️ From は Workspace 登録ドメインのアドレス（contact@mail.yah.mobi＝ENV.mailFrom）であること。
+ *   素の yah.mobi は未登録のため relay の「自ドメイン内のみ」で拒否される（550 Invalid credentials for relay）。
+ * 詳細 docs/design_smtp_relay.md。送信失敗時は例外をスローする。
  */
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
   const user = ENV.gmailUser;
@@ -38,7 +39,10 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
   }
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp-relay.gmail.com",
+    port: 587,
+    secure: false,       // STARTTLS（下の requireTLS で強制）
+    requireTLS: true,
     auth: {
       user,
       pass,

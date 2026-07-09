@@ -30,11 +30,11 @@ const transporter = nodemailer.createTransport({
 3. **認証**: 「**SMTP 認証を要求**」ON（＝GMAIL_USER/アプリパスワードで認証。Cloud Functions は固定IPが無いため**IP許可ではなく認証方式**）。「**TLS 暗号化を要求**」ON。
 4. 送信アカウント（`GMAIL_USER`）に **2段階認証＋アプリパスワード**があること（現状動いているので既に有）。
 
-## 4. 送信元(From)ドメイン → ✅ **解決済み（設定は最短）**
+## 4. 送信元(From)ドメイン → ⚠️ **初回不達の真因はここ（2026-07-09 修正済）**
 確認結果（2026-07-09）：
-- **Workspace 構成**: プライマリ `bonfire.co.jp` ＋ **セカンダリ登録済み `mail.yah.mobi`**（`contact@mail.yah.mobi` は Workspace ユーザー）。
-- 現状 From ＝ `contact@mail.yah.mobi`（`MAIL_FROM`）は **Workspace の登録ドメインに属する** → SMTP relay の「自ドメイン内のみ許可」で**そのまま許可される**。
-- → **From の変更もドメイン追加も不要。** §2 のコード差し替え＋§3 の relay 有効化だけで動く。
+- **Workspace 構成**: プライマリ `bonfire.co.jp` ＋ **セカンダリ登録済み `mail.yah.mobi`**（`contact@mail.yah.mobi` は Workspace ユーザー）。素の `yah.mobi` は**未登録**。
+- 🔴 **初回デプロイが不達だった原因**: `MAIL_FROM` は未設定で、`env.ts` の既定 From が **`noreply@yah.mobi`**（未登録ドメイン）だった。relay の「自ドメイン内のみ許可」が envelope MAIL FROM の `yah.mobi` を弾き、`550-5.7.0 Mail relay denied ... Invalid credentials for relay for one of the domains in: ... yah.mobi` を返していた。smtp.gmail.com は From に寛容で通っていたため顕在化していなかった。
+- ✅ **修正**: `env.ts` の From 既定を **`yah.mobile <contact@mail.yah.mobi>`**（登録ドメイン＝DKIM/SPF/DMARC 設定済み）に変更。→ relay の「自ドメイン内のみ」を通過し、DKIM 署名が From ドメインと一致して DMARC pass（到達率も最良）。
 
 **あわせて DNS（`mail.yah.mobi` に対して・到達率↑／なりすまし防止）**
 - **SPF**: `mail.yah.mobi` の TXT に `v=spf1 include:_spf.google.com ~all`（既にWorkspace利用なら設定済のことが多い。要確認）。
