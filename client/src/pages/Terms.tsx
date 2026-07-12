@@ -13,11 +13,13 @@ export default function Terms() {
     },
     {
       title: "2. Telecommunications Service Provider / 通信役務の提供者",
-      body: "The mobile data service associated with eSIMs sold on this site (the \"Service\") is provided by our partner telecommunications carriers (eSIMAccess and its partner carriers; the \"Provider\"). yah.mobile (Bonfire Inc.) is a retailer that sells activation codes for the Service and provides customer support; we are not the provider of the telecommunications service itself. The quality, coverage, interruption or failure of the Service are matters within the Provider's responsibility. We act as a contact point and escalate such inquiries to the Provider. Data balance, validity and similar information shown in your account is retrieved from the Provider's systems and displayed for your convenience.\n\n本サービスで販売する eSIM に係るデータ通信役務（以下「通信役務」）は、当社の提携先である通信事業者（eSIMAccess およびその接続先の通信事業者。以下「提供者」）が提供します。当社（ボンファイア株式会社）は通信役務の提供主体ではなく、そのアクティベーションコード（利用権）の販売および購入者サポートを行う販売店です。通信役務の品質、通信可能区域、通信の中断・障害その他通信役務の提供に関する事項は提供者の責任に属します。当社はこれらに関するお問い合わせについて、提供者への取次ぎを行います。マイページ等に表示されるデータ残量・有効期限等の情報は、提供者のシステムから取得した情報を購入者の便宜のために表示するものです。",
+      body: "The mobile data service associated with eSIMs sold on this site (the \"Service\") is provided by our partner telecommunications carriers (eSIMAccess and its partner carriers; the \"Provider\"). yah.mobile (Bonfire Inc.) is a retailer that sells activation codes for the Service and provides customer support; we are not the provider of the telecommunications service itself. The quality, coverage, interruption or failure of the Service are matters within the Provider's responsibility. We act as a contact point and escalate such inquiries to the Provider. Data balance, validity and similar information shown in your account is retrieved from the Provider's systems and displayed for your convenience.",
+      ja: "本サービスで販売する eSIM に係るデータ通信役務（以下「通信役務」）は、当社の提携先である通信事業者（eSIMAccess およびその接続先の通信事業者。以下「提供者」）が提供します。当社（ボンファイア株式会社）は通信役務の提供主体ではなく、そのアクティベーションコード（利用権）の販売および購入者サポートを行う販売店です。通信役務の品質、通信可能区域、通信の中断・障害その他通信役務の提供に関する事項は提供者の責任に属します。当社はこれらに関するお問い合わせについて、提供者への取次ぎを行います。マイページ等に表示されるデータ残量・有効期限等の情報は、提供者のシステムから取得した情報を購入者の便宜のために表示するものです。",
     },
     {
       title: "3. Eligibility / 利用資格",
-      body: "You must be 18 years of age or older to purchase an eSIM. By using our service, you represent that you are 18 years of age or older. If you are under 18, you may not use this service. yah.mobile reserves the right to terminate accounts found to be registered by minors.\n\n未成年者（18歳未満）は本サービスを利用することができません。本サービスを利用することで、お客様は18歳以上であることを表明したものとみなします。未成年者による登録が判明した場合、yah.mobileは当該アカウントを停止または削除する権利を有します。",
+      body: "You must be 18 years of age or older to purchase an eSIM. By using our service, you represent that you are 18 years of age or older. If you are under 18, you may not use this service. yah.mobile reserves the right to terminate accounts found to be registered by minors.",
+      ja: "未成年者（18歳未満）は本サービスを利用することができません。本サービスを利用することで、お客様は18歳以上であることを表明したものとみなします。未成年者による登録が判明した場合、yah.mobileは当該アカウントを停止または削除する権利を有します。",
     },
     {
       title: "4. eSIM Delivery",
@@ -25,7 +27,8 @@ export default function Terms() {
     },
     {
       title: "5. Refund Policy",
-      body: "eSIM is a digital product. Once your QR code has been issued, cancellations and refunds are not available. Exception: if we are unable to deliver your eSIM or data top-up due to a technical problem on our side (for example, a system error or a failure of our upstream provider), we will refund your payment in full. In such cases the refund is issued automatically to your original payment method once the failure is confirmed, and no action is required on your part. If your eSIM was delivered but you experience technical issues preventing activation, please contact our support team within 24 hours of purchase. Any refund we make is a refund of the purchase price by us as the seller where we were unable to deliver the product (activation code); it is not a warranty or compensation relating to the quality of the telecommunications service.\n\n当社が行う返金は、当社が商品（アクティベーションコード）を納品できなかった場合における売主としての商品代金の返金であり、通信役務の品質に関する保証または補償ではありません。",
+      body: "eSIM is a digital product. Once your QR code has been issued, cancellations and refunds are not available. Exception: if we are unable to deliver your eSIM or data top-up due to a technical problem on our side (for example, a system error or a failure of our upstream provider), we will refund your payment in full. In such cases the refund is issued automatically to your original payment method once the failure is confirmed, and no action is required on your part. If your eSIM was delivered but you experience technical issues preventing activation, please contact our support team within 24 hours of purchase. Any refund we make is a refund of the purchase price by us as the seller where we were unable to deliver the product (activation code); it is not a warranty or compensation relating to the quality of the telecommunications service.",
+      ja: "当社が行う返金は、当社が商品（アクティベーションコード）を納品できなかった場合における売主としての商品代金の返金であり、通信役務の品質に関する保証または補償ではありません。",
     },
     {
       title: "6. Prohibited Activities",
@@ -49,7 +52,18 @@ export default function Terms() {
     },
     {
       title: "11. Specified Commercial Transactions Act (特定商取引法)",
-      body: "Seller (販売業者): ボンファイア株式会社 (Bonfire Inc.) | Operations Manager (運営統括責任者): 山田一慶 | Address (所在地): Disclosed without delay upon request / 請求により遅滞なく開示します | Phone (電話番号): Disclosed without delay upon request / 請求により遅滞なく開示します | Contact (連絡先): chat.yah.mobi or contact@mail.yah.mobi | Price (販売価格): As displayed at time of purchase (JPY, tax included) | Additional fees (追加手数料): None | Payment (支払方法): Credit/debit card via Stripe | Delivery (引渡時期): Immediate upon payment (QR code delivered to registered email) | Returns/Cancellations (返品・キャンセル): Not accepted after QR code issuance (digital product). Exception: if we cannot deliver the eSIM or top-up due to a technical issue on our side (a system error or an upstream provider failure), the payment is refunded in full — issued automatically to the original payment method once the failure is confirmed. For activation issues after delivery, contact support within 24 hours of purchase.",
+      rows: [
+        "Seller (販売業者): ボンファイア株式会社 (Bonfire Inc.)",
+        "Operations Manager (運営統括責任者): 山田一慶",
+        "Address (所在地): Disclosed without delay upon request / 請求により遅滞なく開示します",
+        "Phone (電話番号): Disclosed without delay upon request / 請求により遅滞なく開示します",
+        "Contact (連絡先): chat.yah.mobi or contact@mail.yah.mobi",
+        "Price (販売価格): As displayed at time of purchase (JPY, tax included)",
+        "Additional fees (追加手数料): None",
+        "Payment (支払方法): Credit/debit card via Stripe",
+        "Delivery (引渡時期): Immediate upon payment (QR code delivered to registered email)",
+        "Returns/Cancellations (返品・キャンセル): Not accepted after QR code issuance (digital product). Exception: if we cannot deliver the eSIM or top-up due to a technical issue on our side (a system error or an upstream provider failure), the payment is refunded in full — issued automatically to the original payment method once the failure is confirmed. For activation issues after delivery, contact support within 24 hours of purchase.",
+      ],
     },
   ];
 
@@ -76,7 +90,24 @@ export default function Terms() {
             {sections.map((section) => (
               <div key={section.title} className="flex flex-col sm:flex-row gap-6 py-6 border-b border-[#D7D7D7]">
                 <p className="font-sans font-medium text-black/40 text-[0.75rem] tracking-[0.04em] sm:w-52 shrink-0">{section.title}</p>
-                <p className="font-sans text-black/70 text-[0.875rem] leading-[1.75]">{section.body}</p>
+                <div className="flex-1 min-w-0">
+                  {section.rows ? (
+                    // 特商法：項目ごとに1行（長い1行の塊を解消）
+                    <div className="space-y-2">
+                      {section.rows.map((row, i) => (
+                        <p key={i} className="font-sans text-black/70 text-[0.875rem] leading-[1.7]">{row}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <p className="font-sans text-black/70 text-[0.875rem] leading-[1.75]">{section.body}</p>
+                      {section.ja && (
+                        // 日本語は区切り線＋淡色で分離（英語との塊化を解消）
+                        <p className="font-sans text-black/45 text-[0.8125rem] leading-[1.9] mt-4 pt-4 border-t border-black/[0.07]">{section.ja}</p>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             ))}
           </div>
