@@ -28,6 +28,10 @@ const HowItWorksSection = lazy(() => import("@/components/app/HowItWorksSection"
 const PlansSection = lazy(() => import("@/components/app/PlansSection"));
 const LegalSection = lazy(() => import("@/components/app/LegalSection"));
 const ComparisonTable = lazy(() => import("@/components/app/ComparisonTable"));
+
+// C-1(コンプラ監査 compliance_audit_20260713.md): 実在顧客レビューを収集できるまで false 固定。
+// ハードコードのレビュー/評価表示は景表法ステマ告示・優良誤認リスクのため非表示にする。
+const SHOW_REVIEWS = false;
 const ContactSection = lazy(() => import("@/components/app/ContactSection"));
 const DeviceChecker = lazy(() => import("@/components/app/DeviceChecker"));
 const ReferenceAccordion = lazy(() => import("@/components/app/ReferenceAccordion"));
@@ -292,11 +296,7 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
       ? "面向赴日旅行者的eSIM服务。即时发送二维码，NTT docomo网络。低至¥990。"
       : "Japan eSIM for international travelers. Instant QR code delivery, NTT docomo network. Plans from ¥990.";
 
-    const reviewItems = [
-      { author: "Sarah M.", rating: 5, body: lang === "ko" ? "공항에서 바로 연결됐어요. 완벽했습니다!" : lang === "zh-CN" ? "落地即连，完美！" : "Connected the moment I landed. Absolutely seamless!" },
-      { author: "Lucas B.", rating: 5, body: lang === "ko" ? "설정이 너무 쉬웠어요. 일본 전역에서 빠른 속도!" : lang === "zh-CN" ? "设置超简单，全日本网速都很快！" : "Setup took 2 minutes. Fast everywhere in Japan." },
-      { author: "Yuki T.", rating: 5, body: lang === "ko" ? "교토와 오사카에서 완벽하게 작동했어요." : lang === "zh-CN" ? "京都和大阪都完美运行。" : "Worked perfectly in Kyoto and Osaka. Great value." },
-    ];
+    // C-1: reviewItems(架空レビュー)は実在レビュー収集まで削除。JSON-LDにも出力しない。
 
     const minPrice = (allDbPlans as (FsPlan & { description?: string | null })[]).reduce(
       (min, p) => (p.priceJpy < min ? p.priceJpy : min),
@@ -311,19 +311,6 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
       "url": pageUrl,
       "image": "https://yah.mobi/og-image.png",
       "brand": { "@type": "Brand", "name": "yah.mobile" },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "5.0",
-        "reviewCount": "3",
-        "bestRating": "5",
-        "worstRating": "1",
-      },
-      "review": reviewItems.map((r) => ({
-        "@type": "Review",
-        "author": { "@type": "Person", "name": r.author },
-        "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating), "bestRating": "5" },
-        "reviewBody": r.body,
-      })),
       "offers": (allDbPlans as (FsPlan & { description?: string | null })[]).length > 0
         ? {
             "@type": "AggregateOffer",
@@ -465,8 +452,8 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
         </div>
       </section>
 
-      {/* ─── SOCIAL PROOF ─── */}
-      <section className="py-14 bg-white border-b border-[#E8E8E8]">
+      {/* ─── SOCIAL PROOF ─── C-1: 実在レビュー収集まで非表示 */}
+      {SHOW_REVIEWS && <section className="py-14 bg-white border-b border-[#E8E8E8]">
         <div className="container">
           <FadeIn>
             <div className="flex flex-col sm:flex-row sm:items-start gap-8 sm:gap-12">
@@ -510,7 +497,7 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
             </div>
           </FadeIn>
         </div>
-      </section>
+      </section>}
 
       {/* ─── SUPPORT STRIP ─── */}
       <section className="py-7 bg-[#F7F7F7] border-b border-[#E8E8E8]">
@@ -599,6 +586,8 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
           <Suspense fallback={<div className="h-96" />}>
             <ComparisonTable />
           </Suspense>
+          {/* H-1(コンプラ監査): 競合価格の打消し表示 */}
+          <p className="font-sans text-black/35 mt-4 text-[0.75rem] leading-[1.6]">{t("priceComparison.disclaimer")}</p>
         </div>
       </section>
 

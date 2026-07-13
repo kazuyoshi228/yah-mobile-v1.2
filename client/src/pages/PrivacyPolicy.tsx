@@ -50,8 +50,8 @@ export default function PrivacyPolicy() {
               <LegalRow label="Retention Period" value="Transaction records: 7 years (statutory requirement under Japanese Commercial Code). Consent records (purchase consent, terms acceptance): 7 years (GDPR Article 5(1)(e) / APPI compliance). Account data: deleted within 90 days of account closure upon request. Analytics data: 26 months. Marketing consent: retained until opt-out or account deletion.\n\n同意記録（購入同意・利用規約同意）は、日本の商法およびGDPR第5条第1項(e)に基づき、7年間保管します。" />
               <LegalRow label="Governing Law" value="Laws of Japan" />
               <LegalRow label="APPI" value="Compliant with Japan's Act on the Protection of Personal Information (APPI). You have the right to request disclosure, correction, or deletion of your personal data." />
-              <LegalRow label="GDPR" value="GDPR-compliant for data processing of EU residents. Legal basis: contract performance and legitimate interests." />
-              <LegalRow label="UK GDPR" value="UK GDPR-compliant for data processing of UK residents." />
+              <LegalRow label="GDPR" value="We handle personal data of EU residents in line with GDPR principles. Legal basis: contract performance and legitimate interests." />
+              <LegalRow label="UK GDPR" value="We handle personal data of UK residents in line with UK GDPR principles." />
             </div>
           </section>
 

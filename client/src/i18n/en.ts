@@ -27,16 +27,12 @@ const en = {
     review2: "Best eSIM I've used in Japan. Fast network, no hassle.",
     review3: "Scanned the QR and I was online before leaving the airport.",
   },
-  support: {
-    heading: "Need support?",
-    subheading: "Support is available 24/7 — before and after your trip.",
-    cta: "Start a chat",
-  },
+  support: { title: "24/7 multilingual support", desc: "24/7 multilingual AI chat; human replies within 1 business day." },
   features: {
     sectionLabel: "Why yah.mobile",
     title: "Designed for the modern traveler.",
     items: {
-      bestPrice: { title: "Best price guaranteed", desc: "We promise the best price per GB comparing with our competitors." },
+      bestPrice: { title: "Competitive price per GB", desc: "Transparent, tax-included pricing with a competitive price per GB." },
       coverage: { title: "Nationwide coverage", desc: "Powered by Japan's major carrier network (NTT docomo). City centers to rural destinations." },
       support: { title: "24/7 multilingual support", desc: "24/7 support in multiple languages, before and during your trip." },
       activation: { title: "1-tap activation", desc: "On iOS 17.4+, activate your eSIM with a single tap — no QR scan required." },
@@ -83,6 +79,7 @@ const en = {
     taxIncluded: "Tax included",
   },
   priceComparison: {
+    disclaimer: "Competitor prices and specifications may change. Please check each provider's website for the latest information.",
     sectionLabel: "Price Comparison",
     title: "How we compare.",
     subtitle: "Comparing leading Japan-bound eSIM services on the same \"10GB / 30-day\" tier. Official prices as of April 2026.",
@@ -114,7 +111,7 @@ const en = {
       { q: "Will it work on the bullet train (Shinkansen)?", a: "Yes. yah.mobile runs on NTT docomo, one of Japan's largest networks. Coverage is excellent on Shinkansen routes and in major cities. Some rural tunnels may have limited signal." },
       { q: "How do I receive my eSIM?", a: "After purchase, your QR code is delivered instantly to your registered email and is also available in your account under My Orders. No waiting, no shipping." },
       { q: "What if I need help setting it up?", a: "24/7 chat support can guide you through installation step by step — it usually takes under 3 minutes." },
-      { q: "Is there a speed limit?", a: "No speed throttling. You get full 4G LTE / 5G speeds for the duration of your plan. Speeds depend on network conditions and your device's capabilities." },
+      { q: "Is there a speed limit?", a: "No artificial speed caps from us. Your eSIM runs on high-speed 4G LTE (5G where available). Actual speeds vary by location, time of day, network conditions and your device." },
       { q: "Can I use tethering (hotspot)?", a: "Yes. Tethering and mobile hotspot are supported. You can share your Japan data connection with laptops, tablets, or other devices." },
     ],
   },
@@ -292,6 +289,7 @@ const en = {
     redirectingToStripe: "Redirecting to Stripe...",
     loadingPayment: "Loading payment form...",
     proceedToPayment: "Proceed to Payment",
+    deliveryNote: "Delivery: your eSIM QR code is issued immediately after payment is completed.",
     completeTitle: "Purchase complete.",
     completeDesc: "Your QR code has been sent to your email. Check your inbox to activate your eSIM.",
     completeStep1: "Open the email from yah.mobile",

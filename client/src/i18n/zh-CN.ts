@@ -27,16 +27,12 @@ const zhCN = {
     review2: "在日本用过最好的eSIM，网速快，操作简便。",
     review3: "扫码后还没出机场就已上网了。",
   },
-  support: {
-    heading: "需要帮助？",
-    subheading: "全天候支持——旅行前后均可联系。",
-    cta: "开始聊天",
-  },
+  support: { title: "24/7多语言支持", desc: "多语言AI聊天24/7支持，人工回复在1个工作日内。" },
   features: {
     sectionLabel: "为什么选择 yah.mobile",
     title: "专为现代旅行者设计。",
     items: {
-      bestPrice: { title: "最优价格保证", desc: "与竞争对手相比，我们承诺提供每GB最低价格。" },
+      bestPrice: { title: "极具竞争力的每GB价格", desc: "价格透明、含税，每GB价格具有竞争力。" },
       coverage: { title: "全国覆盖", desc: "采用日本主要运营商网络（NTT docomo）。从城市中心到乡村目的地均有覆盖。" },
       support: { title: "24/7多语言客服", desc: "全天候多语言支持，随时为您服务。" },
       activation: { title: "一键激活", desc: "在iOS 17.4+上，只需轻触一下即可激活eSIM——无需扫描二维码。" },
@@ -83,6 +79,7 @@ const zhCN = {
     taxIncluded: "含税",
   },
   priceComparison: {
+    disclaimer: "各家价格与规格可能变动，最新信息请以各官方网站为准。",
     sectionLabel: "价格对比",
     title: "我们的优势。",
     subtitle: "对比主要日本eSIM服务商的'10GB / 30天'套餐。价格为2026年4月官方价格。",
@@ -114,7 +111,7 @@ const zhCN = {
       { q: "在新干线上能用吗？", a: "可以。yah.mobile使用NTT docomo网络，这是日本最大的运营商之一。新干线沿线及主要城市覆盖良好。部分农村隧道可能信号有限。" },
       { q: "如何收到eSIM？", a: "购买后，二维码将立即发送至您的注册邮箱，也可在账户的'我的订单'中查看。无需等待，无需邮寄。" },
       { q: "如果需要帮助设置怎么办？", a: "全天候在线聊天为您一步步指导安装——通常不到3分钟。" },
-      { q: "有速度限制吗？", a: "没有限速。在套餐有效期内，您可享受完整的4G LTE/5G速度。实际速度取决于网络状况和您的设备性能。" },
+      { q: "有速度限制吗？", a: "我们不会人为限速。您的eSIM使用高速4G LTE（支持地区可用5G）。实际速度因地点、时段、网络状况和设备而异。" },
       { q: "可以使用热点（共享网络）吗？", a: "可以。支持热点和移动网络共享功能。您可以将日本数据连接共享给笔记本电脑、平板电脑或其他设备。" },
     ],
   },
@@ -283,6 +280,7 @@ const zhCN = {
     redirectingToStripe: "正在跳转至Stripe...",
     loadingPayment: "正在加载支付表单...",
     proceedToPayment: "前往支付",
+    deliveryNote: "交付时间：付款完成后立即发放eSIM二维码。",
     completeTitle: "购买完成。",
     completeDesc: "您的二维码已发送至您的邮箱。请查收收件箱以激活eSIM。",
     completeStep1: "打开来自yah.mobile的邮件",

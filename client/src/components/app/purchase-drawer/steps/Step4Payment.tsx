@@ -129,6 +129,9 @@ export function Step4Payment() {
           <p className="font-sans text-black/40 text-[0.75rem]">{t("drawer.securingPaymentSub", "このまま少々お待ちください…")}</p>
         </div>
       ) : (
+        <>
+        {/* M-3(特商法12条の6): 引渡時期の明示 */}
+        <p className="font-sans text-black/40 mb-3 text-[0.75rem]">{t("drawer.deliveryNote")}</p>
         <div className="flex gap-3">
           <button
             onClick={() => setStep(1)}
@@ -147,6 +150,7 @@ export function Step4Payment() {
             {t("drawer.proceedToPayment")}
           </button>
         </div>
+        </>
       )}
     </div>
   );

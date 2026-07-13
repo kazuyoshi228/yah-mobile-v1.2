@@ -28,19 +28,12 @@ const zhTW = {
     "review2": "在日本用過最好的 eSIM，網速快、操作簡便。",
     "review3": "掃描 QR 碼後，還沒走出機場就已上網。"
   },
-  "support": {
-    "heading": "需要協助嗎？",
-    "subheading": "全天候支援——旅行前後皆可聯絡。",
-    "cta": "開始對話"
-  },
+  "support": { "title": "24/7多語言支援", "desc": "多語言AI聊天24/7支援，人工回覆於1個工作日內。" },
   "features": {
     "sectionLabel": "為什麼選擇 yah.mobile",
     "title": "為什麼選擇 yah.mobile。",
     "items": {
-      "bestPrice": {
-        "title": "最優價格保證",
-        "desc": "與競爭對手相比，我們承諾提供每 GB 最低價格。"
-      },
+      "bestPrice": { "title": "極具競爭力的每GB價格", "desc": "價格透明、含稅，每GB價格具有競爭力。" },
       "coverage": {
         "title": "全國覆蓋",
         "desc": "採用日本主要電信業者網路（NTT docomo）。從都市中心到鄉間各地皆有覆蓋。"
@@ -114,6 +107,7 @@ const zhTW = {
     "taxIncluded": "含稅"
   },
   "priceComparison": {
+    "disclaimer": "各家價格與規格可能變動，最新資訊請以各官方網站為準。",
     "sectionLabel": "價格比較",
     "title": "我們的優勢。",
     "subtitle": "以相同「10GB / 30 天」方案比較主要赴日 eSIM 服務商。價格為 2026 年 4 月官方價格。",
@@ -182,7 +176,7 @@ const zhTW = {
       },
       {
         "q": "有速度限制嗎？",
-        "a": "沒有限速。方案有效期間可享完整的4G LTE / 5G速度。實際速度取決於網路狀況和裝置性能。"
+        "a": "我們不會人為限速。您的eSIM使用高速4G LTE（支援地區可用5G）。實際速度因地點、時段、網路狀況和裝置而異。"
       },
       {
         "q": "可以使用熱點（共享網路）嗎？",
@@ -370,6 +364,7 @@ const zhTW = {
     "redirectingToStripe": "正在跳轉至 Stripe...",
     "loadingPayment": "正在載入付款表單...",
     "proceedToPayment": "前往付款",
+    "deliveryNote": "交付時間：付款完成後立即發放eSIM QR碼。",
     "completeTitle": "購買完成。",
     "completeDesc": "您的QR碼已發送至您的電子郵件。請查收收件匣以啟用eSIM。",
     "completeStep1": "開啟來自 yah.mobile 的郵件",
