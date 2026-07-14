@@ -80,6 +80,15 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
   );
   const { data: allDbPlans = [] } = useFirestoreCollection<FsPlan>(() => allPlansQuery, [allPlansQuery], { realtime: false });
 
+  // CVR: ヒーロー価格アンカー用の最安値。優先順: ①Firestore実プラン → ②プリレンダ時に
+  // 本番llms.txt(動的生成)から注入される window.__HERO_MIN_PRICE__ → ③定数800（全滅時の保険）
+  const heroMinPrice = useMemo(() => {
+    const prices = (allDbPlans as FsPlan[]).filter((p) => p.isActive).map((p) => p.priceJpy);
+    if (prices.length) return Math.min(...prices);
+    const injected = (window as unknown as { __HERO_MIN_PRICE__?: number }).__HERO_MIN_PRICE__;
+    return typeof injected === "number" && injected > 0 ? injected : 800;
+  }, [allDbPlans]);
+
   // /buy/:slug（共有用購入リンク）: 実プランと照合できたらドロワーを確認ステップで自動オープン。
   // 未知slug・販売停止中はなにもしない（通常の /app 表示にフォールバック）。1回だけ実行。
   const [buyLinkHandled, setBuyLinkHandled] = useState(false);
@@ -448,6 +457,10 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
             >
               {t("hero.cta")}
             </button>
+            {/* CVR: ファーストビューに価格アンカー（実プランの最安値・ロード前はフォールバック） */}
+            <p className="self-center text-white/60" style={{ fontSize: "0.8125rem", letterSpacing: "0.02em" }}>
+              {t("hero.fromPrice", { price: heroMinPrice.toLocaleString() })}
+            </p>
           </motion.div>
         </div>
       </section>

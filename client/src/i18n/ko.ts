@@ -19,6 +19,7 @@ const ko = {
     title: "연결하고,\n떠나세요.",
     subtitle: "yah.mobile은 일본 현지 eSIM 서비스입니다. 유심 교체 없이, 매장 방문 없이. QR 코드 한 번 스캔으로 일본 전역에서 즉시 연결됩니다.",
     cta: "eSIM 구매",
+    fromPrice: "¥{{price}}부터 · 세금 포함",
     learnMore: "자세히 보기",
   },
   socialProof: {

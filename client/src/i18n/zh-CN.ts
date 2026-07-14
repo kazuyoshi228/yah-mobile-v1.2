@@ -19,6 +19,7 @@ const zhCN = {
     title: "登录，\n出发。",
     subtitle: "yah.mobile 是日本本地 eSIM 服务商。无需换卡，无需到店取卡。扫描二维码，落地即上网。",
     cta: "立即购买 eSIM",
+    fromPrice: "¥{{price}}起 · 含税",
     learnMore: "了解更多",
   },
   socialProof: {

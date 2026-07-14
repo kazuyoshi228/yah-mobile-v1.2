@@ -20,6 +20,7 @@ const zhTW = {
     "title": "在日本\n保持連線。",
     "subtitle": "即時eSIM。無需實體SIM卡。無漫遊費用。",
     "cta": "立即購買eSIM",
+    "fromPrice": "¥{{price}}起 · 含稅",
     "learnMore": "了解更多"
   },
   "socialProof": {
