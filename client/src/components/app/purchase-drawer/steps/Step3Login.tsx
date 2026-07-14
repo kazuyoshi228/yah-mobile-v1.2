@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LogIn, CheckCircle2 } from "lucide-react";
 import { usePurchaseFlow, usePurchaseSession } from "../context";
@@ -7,6 +8,12 @@ export function Step3Login() {
   const { t } = useTranslation();
   const { setStep, initialPlanId, currentOpt, drawerDays, drawerGb } = usePurchaseFlow();
   const { loading, isAuthenticated, user } = usePurchaseSession();
+
+  // 最短動線v2(b): ログイン済み/ログイン成功時は自動で決済ステップへ前進（Continueタップを廃止）。
+  // Payment の back は 0(プラン) に向くためループしない。
+  useEffect(() => {
+    if (!loading && isAuthenticated) setStep(2);
+  }, [loading, isAuthenticated, setStep]);
 
   // ログイン往復で選択プランが失われないよう、plan/days/gb を redirect URL に含める
   // （ポップアップがブロックされた場合のフォールバック先。通常はページ遷移なしでログイン）
@@ -45,8 +52,8 @@ export function Step3Login() {
             </div>
             <CheckCircle2 size={20} className="text-black shrink-0" strokeWidth={1.5} />
           </div>
-          <div className="flex gap-3"><button onClick={() => setStep(1)} className="text-label px-5 py-3.5 border border-[#D7D7D7] text-black hover:border-black transition-colors">{t("drawer.back")}</button><button
-            onClick={() => setStep(3)}
+          <div className="flex gap-3"><button onClick={() => setStep(0)} className="text-label px-5 py-3.5 border border-[#D7D7D7] text-black hover:border-black transition-colors">{t("drawer.back")}</button><button
+            onClick={() => setStep(2)}
             className="text-label flex-1 py-3.5 bg-black text-white hover:bg-black/80 transition-colors duration-200 active:scale-[0.97]"
           >
             {t("drawer.continueBtn")}
@@ -65,7 +72,7 @@ export function Step3Login() {
               </div>
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => setStep(0)}
                 className="text-label text-[0.7rem] text-black/50 hover:text-black underline underline-offset-2 shrink-0 transition-colors"
               >
                 {t("drawer.changePlan", "Change")}

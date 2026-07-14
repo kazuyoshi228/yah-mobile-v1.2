@@ -42,7 +42,6 @@ import {
   PurchaseCheckoutContext, type PurchaseCheckoutCtx,
 } from "./purchase-drawer/context";
 import { Step0Plan } from "./purchase-drawer/steps/Step0Plan";
-import { Step2Confirm } from "./purchase-drawer/steps/Step2Confirm";
 import { Step3Login } from "./purchase-drawer/steps/Step3Login";
 import { Step4Payment } from "./purchase-drawer/steps/Step4Payment";
 import { Step5Complete } from "./purchase-drawer/steps/Step5Complete";
@@ -114,7 +113,7 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
   const { data: esimLinks, isLoading: esimLoading } = useFirestoreCollection<FsEsimLink>(
     () => esimQuery!,
     [esimQuery],
-    { realtime: true, enabled: isAuthenticated && step === 5 && esimOrderId !== undefined && esimQuery !== null }
+    { realtime: true, enabled: isAuthenticated && step === 4 && esimOrderId !== undefined && esimQuery !== null }
   );
   const esimLink = esimLinks[0] ?? null;
 
@@ -156,9 +155,9 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
     setDrawerDays(days ?? defaultDay);
     setDrawerGb(gb);
     // programmatic open では handleOpenChange が発火しないため、開いている間の開始ステップをここで担保。
-    // 明示ステップ指定（?buy=&step= や 決済完了=5）がある場合はそちらを優先。
+    // 明示ステップ指定（?buy=&step= や 決済完了=4）がある場合はそちらを優先。
     if (open && initialStep === undefined) {
-      if (days && gb) setStep(1);  // プラン確定済み → 確認へ（フラットリスト化で日数のみ指定は廃止）
+      if (days && gb) setStep(1);  // プラン確定済み → ログインへ（認証済みなら自動で決済へ前進）
       else setStep(0);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -241,8 +240,8 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
         {/* Step indicator */}
         <div className="flex items-center gap-0 px-6 py-4 border-b border-[#D7D7D7] shrink-0">
           {drawerStepLabels.map((s, i) => {
-            // 完了済みのプラン選択ステップ（PLAN/PRICE = 0..1）はクリックで戻れる
-            const clickable = i < step && i <= 1;
+            // 完了済みのプラン選択ステップ（PLAN = 0）のみクリックで戻れる
+            const clickable = i < step && i === 0;
             return (
             <div key={i} className="flex items-center">
               <button
@@ -292,14 +291,14 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
               <PurchaseFlowContext.Provider value={flowValue}>
                 <PurchaseSessionContext.Provider value={sessionValue}>
                   <PurchaseCheckoutContext.Provider value={checkoutValue}>
-                    {/* plan-selector改修: 0=プラン選択(旧Duration+Data統合) 1=確認 2=ログイン 3=支払い 4=完了 5=eSIM
+                    {/* 最短動線v2: 0=プラン選択 1=ログイン(認証済みは自動前進) 2=支払い 3=完了 4=eSIM
+                        価格確認ステップは削除（カード・ログイン・決済画面に価格情報が重複していたため）。
                         ※コンポーネント名の数字は旧インデックスの名残（ファイル名変更によるテスト churn を避けた） */}
                     {step === 0 && <Step0Plan />}
-                    {step === 1 && <Step2Confirm />}
-                    {step === 2 && <Step3Login />}
-                    {step === 3 && <Step4Payment />}
-                    {step === 4 && <Step5Complete />}
-                    {step === 5 && <Step6Esim />}
+                    {step === 1 && <Step3Login />}
+                    {step === 2 && <Step4Payment />}
+                    {step === 3 && <Step5Complete />}
+                    {step === 4 && <Step6Esim />}
                   </PurchaseCheckoutContext.Provider>
                 </PurchaseSessionContext.Provider>
               </PurchaseFlowContext.Provider>

@@ -235,7 +235,7 @@ const en = {
   drawer: {
     title: "Buy eSIM",
     subtitle: "Get your eSIM.",
-    stepLabels: ["Plan", "Price", "Login", "Payment", "eSIM"],
+    stepLabels: ["Plan", "Login", "Payment", "eSIM"],
     planTitle: "Choose your plan.",
     planDesc: "All prices include tax. Validity is the maximum period — any plan works for a shorter trip.",
     step0: "Sign in",

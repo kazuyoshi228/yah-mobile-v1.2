@@ -239,7 +239,7 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
         const orderIdParam = params.get("orderId");
         trackEvent("order_complete", { orderId: orderIdParam ?? undefined });
         if (orderIdParam) setDrawerOrderId(orderIdParam);
-        setDrawerInitialStep(5);
+        setDrawerInitialStep(4);
         setDrawerOpen(true);
         window.history.replaceState(null, "", window.location.pathname + window.location.hash);
       } else if (planParam || openParam === "true") {
@@ -520,6 +520,19 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
         </div>
       </section>}
 
+      {/* ─── PLANS ─── 最短動線v2: HERO直下へ移動（0スクロール強で価格・選択肢が見える） */}
+      <Suspense fallback={<div className="py-24 bg-white" />}>
+        <PlansSection onSelectPlan={(days: number, gb: string, _priceJpy, bappyPlanId) => {
+          if (bappyPlanId) setDrawerPlanId(bappyPlanId);
+          // 選択済みの日数・GBを直接引き継ぐ（Firestore依存なしで即Step2表示）
+          setDrawerInitialDays(days);
+          setDrawerInitialGb(gb);
+          setDrawerInitialStep(undefined);
+          setDrawerOpen(true);
+          trackEvent("plan_select", { planId: bappyPlanId, days, gb });
+        }} />
+      </Suspense>
+
       {/* ─── SUPPORT STRIP ─── */}
       <section className="py-7 bg-[#F7F7F7] border-b border-[#E8E8E8]">
         <div className="container">
@@ -580,19 +593,6 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
           </Suspense>
         </div>
       </section>
-
-      {/* ─── PLANS ─── */}
-      <Suspense fallback={<div className="py-24 bg-white" />}>
-        <PlansSection onSelectPlan={(days: number, gb: string, _priceJpy, bappyPlanId) => {
-          if (bappyPlanId) setDrawerPlanId(bappyPlanId);
-          // 選択済みの日数・GBを直接引き継ぐ（Firestore依存なしで即Step2表示）
-          setDrawerInitialDays(days);
-          setDrawerInitialGb(gb);
-          setDrawerInitialStep(undefined);
-          setDrawerOpen(true);
-          trackEvent("plan_select", { planId: bappyPlanId, days, gb });
-        }} />
-      </Suspense>
 
       {/* ─── PRICE COMPARISON ─── */}
       <section id="price-comparison" className="py-24 lg:py-36 bg-[#F7F7F7]">

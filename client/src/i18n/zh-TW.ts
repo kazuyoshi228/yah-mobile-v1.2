@@ -306,7 +306,6 @@ const zhTW = {
     "subtitle": "取得您的eSIM。",
     "stepLabels": [
       "方案",
-      "價格",
       "登入",
       "付款",
       "eSIM"

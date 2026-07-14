@@ -235,7 +235,7 @@ const ko = {
   drawer: {
     title: "eSIM 구매",
     subtitle: "eSIM을 받으세요.",
-    stepLabels: ["플랜", "가격", "로그인", "결제", "eSIM"],
+    stepLabels: ["플랜", "로그인", "결제", "eSIM"],
     planTitle: "플랜을 선택하세요.",
     planDesc: "모든 가격은 세금 포함입니다. 유효기간은 최대 사용 기간으로, 더 짧은 여행에도 그대로 사용할 수 있습니다.",
     step0: "로그인",

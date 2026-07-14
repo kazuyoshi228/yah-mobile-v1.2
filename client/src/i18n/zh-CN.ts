@@ -226,7 +226,7 @@ const zhCN = {
   drawer: {
     title: "购买 eSIM",
     subtitle: "获取您的 eSIM。",
-    stepLabels: ["套餐", "价格", "登录", "支付", "eSIM"],
+    stepLabels: ["套餐", "登录", "支付", "eSIM"],
     planTitle: "选择您的套餐。",
     planDesc: "所有价格均含税。有效期为最长使用期限，行程较短也可放心使用。",
     step0: "登录",

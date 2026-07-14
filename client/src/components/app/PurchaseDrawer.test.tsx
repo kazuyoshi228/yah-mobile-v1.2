@@ -94,14 +94,14 @@ describe("PurchaseDrawer — 購入フロー", () => {
         open={true}
         onOpenChange={vi.fn()}
         initialPlanId="JP_7D_1GB"
-        initialStep={3}
+        initialStep={2}
       />,
     );
 
   it("同意にチェックして購入すると ordersInitCheckout が正しい引数で呼ばれ、checkoutURL にリダイレクトされる", async () => {
     renderAtPaymentStep();
 
-    // 決済ボタン（step 3 = Payment）が出るまで待つ
+    // 決済ボタン（step 2 = Payment）が出るまで待つ
     const buyButton = await screen.findByRole("button", { name: /proceedToPayment/i });
 
     // 同意チェックボックス（利用規約/プライバシー/マーケ任意/返金）をすべてチェック
@@ -148,7 +148,7 @@ describe("PurchaseDrawer — 各ステップの描画 (smoke)", () => {
     });
   });
 
-  for (const step of [0, 1, 2, 3, 4, 5]) {
+  for (const step of [0, 1, 2, 3, 4]) {
     it(`step ${step} がクラッシュせず描画される`, async () => {
       render(
         <PurchaseDrawer
