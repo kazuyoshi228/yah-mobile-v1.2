@@ -316,6 +316,7 @@ const en = {
     refundConsentLabel: "eSIM is a digital product. Once your payment is completed, cancellations and refunds are not available. Exception: if we cannot deliver your eSIM or top-up due to a technical problem on our side, your payment is refunded in full — automatically, to your original payment method. If you have any questions, please chat with us before purchasing.",
     refundConsentRequired: "Please confirm the no-refund policy to proceed.",
     termsConsentLabel: "I agree to the",
+    termsPrivacyConsentRequired: "Please agree to the Terms of Service and Privacy Policy to proceed.",
     termsConsentRequired: "Please agree to the Terms of Service to proceed.",
     privacyConsentLabel: "I agree to the",
     privacyConsentRequired: "Please agree to the Privacy Policy to proceed.",

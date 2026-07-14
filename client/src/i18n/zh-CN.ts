@@ -305,6 +305,7 @@ const zhCN = {
     esimActivateAndroid: "在Android上激活",
     esimDone: "完成",
     refundConsentLabel: "eSIM为数字商品。支付完成后无法取消或退款。例外情况：若因我方技术问题无法交付eSIM或充值，我们将自动全额退款至您的原支付方式。如有任何疑问，请在购买前通过在线客服联系我们。",
+    termsPrivacyConsentRequired: "请同意服务条款和隐私政策以继续。",
     refundConsentRequired: "请同意不可退款政策以继续支付。",
   },
   mypage: {

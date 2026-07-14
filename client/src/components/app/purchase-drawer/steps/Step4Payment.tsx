@@ -52,35 +52,32 @@ export function Step4Payment() {
         )}
       </div>
 
-      {/* 利用規約同意 */}
-      <label className={`flex items-start gap-3 p-4 border cursor-pointer mb-3 transition-colors ${termsConsentError ? "border-red-400 bg-red-50" : "border-[#D7D7D7] hover:border-black/40"}`}>
+      {/* 利用規約＋プライバシーポリシー同意（N1: 決済直前の摩擦削減のため1チェックに統合。
+          バックエンド契約は不変＝1チェックで termsConsented / privacyConsented の両方をセット） */}
+      <label className={`flex items-start gap-3 p-4 border cursor-pointer mb-3 transition-colors ${(termsConsentError || privacyConsentError) ? "border-red-400 bg-red-50" : "border-[#D7D7D7] hover:border-black/40"}`}>
         <div className="relative shrink-0 mt-0.5">
-          <input type="checkbox" checked={termsConsented} onChange={(e) => { setTermsConsented(e.target.checked); if (e.target.checked) setTermsConsentError(false); }} className="sr-only" />
-          <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${termsConsented ? "bg-black border-black" : "bg-white border-[#D7D7D7]"}`}>
-            {termsConsented && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+          <input
+            type="checkbox"
+            checked={termsConsented && privacyConsented}
+            onChange={(e) => {
+              setTermsConsented(e.target.checked);
+              setPrivacyConsented(e.target.checked);
+              if (e.target.checked) { setTermsConsentError(false); setPrivacyConsentError(false); }
+            }}
+            className="sr-only"
+          />
+          <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${(termsConsented && privacyConsented) ? "bg-black border-black" : "bg-white border-[#D7D7D7]"}`}>
+            {(termsConsented && privacyConsented) && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
           </div>
         </div>
         <p className="font-sans text-black/70 text-[0.8125rem] leading-[1.65]">
           {t("drawer.termsConsentLabel")}{" "}
           <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-black transition-colors" onClick={(e) => e.stopPropagation()}>{t("footer.terms")}</a>
-        </p>
-      </label>
-      {termsConsentError && <p className="font-sans text-red-600 text-[0.75rem] mb-3 -mt-1">{t("drawer.termsConsentRequired")}</p>}
-
-      {/* プライバシーポリシー同意 */}
-      <label className={`flex items-start gap-3 p-4 border cursor-pointer mb-3 transition-colors ${privacyConsentError ? "border-red-400 bg-red-50" : "border-[#D7D7D7] hover:border-black/40"}`}>
-        <div className="relative shrink-0 mt-0.5">
-          <input type="checkbox" checked={privacyConsented} onChange={(e) => { setPrivacyConsented(e.target.checked); if (e.target.checked) setPrivacyConsentError(false); }} className="sr-only" />
-          <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${privacyConsented ? "bg-black border-black" : "bg-white border-[#D7D7D7]"}`}>
-            {privacyConsented && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
-          </div>
-        </div>
-        <p className="font-sans text-black/70 text-[0.8125rem] leading-[1.65]">
-          {t("drawer.privacyConsentLabel")}{" "}
+          {" "}{t("drawer.loginConsentAnd")}{" "}
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-black transition-colors" onClick={(e) => e.stopPropagation()}>{t("footer.privacy")}</a>
         </p>
       </label>
-      {privacyConsentError && <p className="font-sans text-red-600 text-[0.75rem] mb-3 -mt-1">{t("drawer.privacyConsentRequired")}</p>}
+      {(termsConsentError || privacyConsentError) && <p className="font-sans text-red-600 text-[0.75rem] mb-3 -mt-1">{t("drawer.termsPrivacyConsentRequired")}</p>}
 
       {/* マーケティングメール同意（任意）*/}
       <label className="flex items-start gap-3 p-4 border border-[#D7D7D7] cursor-pointer mb-4 hover:border-black/40 transition-colors">

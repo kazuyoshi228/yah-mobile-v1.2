@@ -316,6 +316,7 @@ const ko = {
     refundConsentLabel: "eSIM은 디지털 상품입니다. 결제 완료 후에는 취소 및 환불이 불가합니다. 예외: 당사 측의 기술적 문제로 eSIM 또는 충전을 제공하지 못하는 경우, 결제 금액은 원래 결제 수단으로 자동으로 전액 환불됩니다. 궁금한 점은 구매 전에 채팅으로 문의해 주세요.",
     refundConsentRequired: "환불 불가 정책에 동의하셔야 결제를 진행할 수 있습니다.",
     termsConsentLabel: "다음에 동의합니다:",
+    termsPrivacyConsentRequired: "계속하려면 이용약관 및 개인정보처리방침에 동의해 주세요.",
     termsConsentRequired: "결제를 진행하려면 이용약관에 동의해 주세요.",
     privacyConsentLabel: "다음에 동의합니다:",
     privacyConsentRequired: "결제를 진행하려면 개인정보 처리방침에 동의해 주세요.",

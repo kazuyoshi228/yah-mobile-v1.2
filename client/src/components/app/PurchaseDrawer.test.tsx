@@ -129,7 +129,7 @@ describe("PurchaseDrawer — 購入フロー", () => {
     fireEvent.click(buyButton);
 
     // 同意必須エラーが表示され、決済は呼ばれない
-    await waitFor(() => expect(screen.getByText("drawer.termsConsentRequired")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("drawer.termsPrivacyConsentRequired")).toBeInTheDocument());
     expect(mockMutateAsync).not.toHaveBeenCalled();
     expect(window.location.href).toBe("");
   });
