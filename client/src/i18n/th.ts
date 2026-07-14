@@ -19,7 +19,7 @@ const th = {
     title: "ล็อกอิน,\nออกเดินทาง.",
     subtitle: "yah.mobile คือผู้ให้บริการ eSIM ท้องถิ่นในญี่ปุ่น ไม่ต้องเปลี่ยนซิม ไม่ต้องรับของที่ร้าน แค่สแกน QR Code ก็ออนไลน์ทั่วญี่ปุ่นได้ทันทีที่ลงเครื่อง",
     cta: "ซื้อ eSIM",
-    fromPrice: "เริ่มต้น ¥{{price}} · รวมภาษี",
+    planAnchor: "{{gb}}GB · {{days}} วัน · ¥{{price}} · รวมภาษี",
     learnMore: "เรียนรู้เพิ่มเติม",
   },
   socialProof: {
@@ -294,6 +294,7 @@ const th = {
     redirectingToStripe: "กำลังไปยัง Stripe...",
     loadingPayment: "กำลังโหลดแบบฟอร์มชำระเงิน...",
     proceedToPayment: "ดำเนินการชำระเงิน",
+    loginReassure: "ไม่ต้องใช้รหัสผ่าน — ลงชื่อเข้าใช้ด้วย Google ในราว 10 วินาที",
     deliveryNote: "การส่งมอบ: QR โค้ด eSIM จะออกให้ทันทีหลังชำระเงินเสร็จสิ้น",
     completeTitle: "ซื้อเสร็จสิ้นแล้ว",
     completeDesc: "QR Code ของคุณถูกส่งไปยังอีเมลแล้ว ตรวจสอบกล่องจดหมายเพื่อเปิดใช้งาน eSIM",

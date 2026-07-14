@@ -19,7 +19,7 @@ const en = {
     title: "Log in,\nStep Out.",
     subtitle: "yah.mobile is the local eSIM provider in Japan. No SIM swap. No store pickup. Just scan a QR code and you're online across Japan from the moment you land.",
     cta: "Buy eSIM",
-    fromPrice: "From ¥{{price}} — tax included",
+    planAnchor: "{{gb}}GB · {{days}} days · ¥{{price}} — tax included",
     learnMore: "Learn more",
   },
   socialProof: {
@@ -294,6 +294,7 @@ const en = {
     redirectingToStripe: "Redirecting to Stripe...",
     loadingPayment: "Loading payment form...",
     proceedToPayment: "Proceed to Payment",
+    loginReassure: "No password needed — sign in with Google in about 10 seconds.",
     deliveryNote: "Delivery: your eSIM QR code is issued immediately after payment is completed.",
     completeTitle: "Purchase complete.",
     completeDesc: "Your QR code has been sent to your email. Check your inbox to activate your eSIM.",

@@ -88,6 +88,8 @@ export function Step3Login() {
             >
               <span className="font-sans text-[0.875rem] font-medium tracking-[0.1em]">{t("drawer.signInBtn")}</span>
             </button>
+            {/* CVR: 「アカウント作成」への誤解を解く安心コピー */}
+            <p className="font-sans text-black/45 text-[0.75rem] leading-[1.6] mt-3 text-center">{t("drawer.loginReassure")}</p>
             <p className="font-sans text-black/35 text-[0.6875rem] leading-[1.6] mt-3 text-center">
               {t("drawer.loginConsent")}{" "}
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-black/60 transition-colors">{t("footer.terms")}</a>

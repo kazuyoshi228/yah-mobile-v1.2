@@ -20,7 +20,7 @@ const zhTW = {
     "title": "在日本\n保持連線。",
     "subtitle": "即時eSIM。無需實體SIM卡。無漫遊費用。",
     "cta": "立即購買eSIM",
-    "fromPrice": "¥{{price}}起 · 含稅",
+    "planAnchor": "{{gb}}GB · {{days}}天 · ¥{{price}} · 含稅",
     "learnMore": "了解更多"
   },
   "socialProof": {
@@ -369,6 +369,7 @@ const zhTW = {
     "redirectingToStripe": "正在跳轉至 Stripe...",
     "loadingPayment": "正在載入付款表單...",
     "proceedToPayment": "前往付款",
+    "loginReassure": "無需密碼——使用 Google 約10秒即可登入。",
     "deliveryNote": "交付時間：付款完成後立即發放eSIM QR碼。",
     "completeTitle": "購買完成。",
     "completeDesc": "您的QR碼已發送至您的電子郵件。請查收收件匣以啟用eSIM。",

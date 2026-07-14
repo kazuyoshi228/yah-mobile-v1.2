@@ -79,15 +79,21 @@ async function main() {
     process.exit(1);
   }
   const server = await startServer();
-  // ヒーロー価格アンカー用: 本番llms.txt（Firestoreから動的生成）から実際の最安値を取得して
+  // ヒーロー看板プラン用: 本番llms.txt（Firestoreから動的生成）から10GBプランの行を解析して
   // プリレンダHTMLに焼き込む（プリレンダ中はApp CheckでFirestoreを読めないため）。失敗時はnull=クライアント側定数にフォールバック。
-  let minPrice = null;
+  let heroPlan = null;
   try {
-    const res = await fetch("https://yah.mobi/llms.txt");
-    const m = (await res.text()).match(/Minimum Price: ¥([0-9,]+)/);
-    if (m) minPrice = parseInt(m[1].replace(/,/g, ""), 10);
-    console.log(`[prerender] min price from llms.txt: ${minPrice ?? "(取得失敗→フォールバック)"}`);
-  } catch { console.log("[prerender] llms.txt fetch failed — フォールバック価格を使用"); }
+    const txt = await (await fetch("https://yah.mobi/llms.txt")).text();
+    // セクション「### 30-Day Plans」配下の「| 10GB… | ¥2600… |」行を探す（初期購入プランの表）
+    let days = null;
+    for (const line of txt.split("\n")) {
+      const d = line.match(/^### (\d+)-Day Plans/);
+      if (d) { days = parseInt(d[1], 10); continue; }
+      const row = line.match(/^\| 10GB[^|]*\| ¥([0-9]+)/);
+      if (row && days && !line.includes("TOPUP")) { heroPlan = { gb: 10, days, price: parseInt(row[1], 10) }; break; }
+    }
+    console.log(`[prerender] hero plan from llms.txt: ${heroPlan ? JSON.stringify(heroPlan) : "(取得失敗→フォールバック)"}`);
+  } catch { console.log("[prerender] llms.txt fetch failed — フォールバックを使用"); }
 
   const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
   console.log(`[prerender] serving dist/public on :${PORT} / routes=${ROUTES.length}`);
@@ -103,7 +109,7 @@ async function main() {
       // chat widget (chat.yah.mobi) はプリレンダ中はロードしない。
       // 焼き込むと死んだ #yah-chat-btn ＋ origin=localhost の iframe が本番HTMLに残り、
       // 実行時の widget.js 再注入と二重化するため（QA修正一式 design_qa_fixes.md §D）。
-      if (minPrice) await page.evaluateOnNewDocument(`window.__HERO_MIN_PRICE__ = ${minPrice};`);
+      if (heroPlan) await page.evaluateOnNewDocument(`window.__HERO_PLAN__ = ${JSON.stringify(heroPlan)};`);
       await page.setRequestInterception(true);
       page.on("request", (req) => {
         if (req.url().includes("chat.yah.mobi")) return void req.abort();

@@ -80,13 +80,21 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
   );
   const { data: allDbPlans = [] } = useFirestoreCollection<FsPlan>(() => allPlansQuery, [allPlansQuery], { realtime: false });
 
-  // CVR: ヒーロー価格アンカー用の最安値。優先順: ①Firestore実プラン → ②プリレンダ時に
-  // 本番llms.txt(動的生成)から注入される window.__HERO_MIN_PRICE__ → ③定数800（全滅時の保険）
-  const heroMinPrice = useMemo(() => {
-    const prices = (allDbPlans as FsPlan[]).filter((p) => p.isActive).map((p) => p.priceJpy);
-    if (prices.length) return Math.min(...prices);
-    const injected = (window as unknown as { __HERO_MIN_PRICE__?: number }).__HERO_MIN_PRICE__;
-    return typeof injected === "number" && injected > 0 ? injected : 800;
+  // CVR: ヒーローの価格アンカーは看板プラン（容量が10GBに最も近いプラン=POPULARと同一ヒューリスティック）。
+  // 優先順: ①Firestore実プラン → ②プリレンダ時に本番llms.txtから注入される window.__HERO_PLAN__ → ③定数(10GB/30日/¥2,600)
+  const heroPlan = useMemo(() => {
+    const actives = (allDbPlans as FsPlan[]).filter((p) => p.isActive);
+    if (actives.length) {
+      let best = actives[0];
+      for (const p of actives) {
+        const d = Math.abs(p.dataGb - 10), bd = Math.abs(best.dataGb - 10);
+        if (d < bd || (d === bd && p.priceJpy < best.priceJpy)) best = p;
+      }
+      return { gb: best.dataGb, days: best.validityDays, price: best.priceJpy };
+    }
+    const inj = (window as unknown as { __HERO_PLAN__?: { gb: number; days: number; price: number } }).__HERO_PLAN__;
+    if (inj && inj.gb > 0 && inj.price > 0) return inj;
+    return { gb: 10, days: 30, price: 2600 };
   }, [allDbPlans]);
 
   // /buy/:slug（共有用購入リンク）: 実プランと照合できたらドロワーを確認ステップで自動オープン。
@@ -459,7 +467,7 @@ export default function AppPage({ buySlug }: { buySlug?: string } = {}) {
             </button>
             {/* CVR: ファーストビューに価格アンカー（実プランの最安値・ロード前はフォールバック） */}
             <p className="self-center text-white/60" style={{ fontSize: "0.8125rem", letterSpacing: "0.02em" }}>
-              {t("hero.fromPrice", { price: heroMinPrice.toLocaleString() })}
+              {t("hero.planAnchor", { gb: heroPlan.gb, days: heroPlan.days, price: heroPlan.price.toLocaleString() })}
             </p>
           </motion.div>
         </div>
