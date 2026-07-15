@@ -89,10 +89,21 @@ hosting rewrite:
 - **CJK強調の追加対処**（設計に無かった実データ起因）: feed本文が「…」\*\* の形の和文強調を多用。CommonMarkの right-flanking 規則で和文約物直後の閉じ \*\* が強調化しないため、`lib/markdown.ts` で marked 前に「同一行で閉じた \*\*…\*\*」を `<strong>` へ正規化（表セル/リストは非破壊）。
 - **outDir を当面 `dist/astro` に隔離**: 設計§2は「outDir を dist/public にマージ」だが、SPAの `dist/public`（emptyOutDir）を壊さないため**P1では分離**。統合（§7残）で hosting へ寄せる。
 
-### P1残（次サブステップ／別途着手・要合意）
-- **配信統合**: `firebase.json` に `/esim/**` rewrite（実ファイル優先）＋ ビルドで astro 出力を `dist/public/esim/**` へ配置（build スクリプト連結 or postbuild コピー）。→ dev チャンネルへ deploy して**生HTMLのGEO確認＋SPA全機能の回帰**。
-- CI（firebase-hosting-dev.yml / merge）の build に astro build 追加。
-- 本番反映は上記 dev 確認後、**ユーザー明示指示**で。
+### 配信統合（済・コミット b86c684）
+- `build` を `vite → astro → merge` に統合（`scripts/merge_astro_dist.mjs` が dist/astro→dist/public マージ）。**`firebase.json` は無改修**（Hostingの実ファイル優先が catch-all rewrite に勝つ）。
+- PWA: `navigateFallbackDenylist` に `/^\/esim(\/|$)/`（SW導入済みでも /esim は実HTMLをネット取得）。
+- eslint: `.astro/**` を無視（生成物のlintエラー回避）。
+- **ローカル検証（Firebase Hostingエミュレータ＝実firebase.json）**: /esim=200静的・/app=SPA・末尾/→301canonical・不明パス→SPA。
+- **ライブ検証（専用プレビューチャンネル `astro`）**: `https://yah-mobile-v1-3ed24--astro-trwvt2rn.web.app`（expires 2026-07-22）。
+  /esim/ja/esim-chatgpt=200静的（directAnswer・¥2,600/¥1,800・FAQ・strong×12・Article/FAQPage JSON-LD・canonical=本番yah.mobi・CSP違反なし）。
+  購入ボタン→ `/app?open=true&plan=PAK783GRS` で**ドロワー起動＋PLAN事前選択→LOGIN自動前進**を実機確認。
+  ※本番 dev/main・本番 yah.mobi は無改修。招待ゲートは閉じたまま。
+
+### P1残（本番化前・要ユーザー判断）
+- **App Check**: `astro` チャンネルURLは reCAPTCHA Enterprise 未許可 → そのチャンネルでは購入/ログインのcallableがブロックされる（SPAバンドルは追加のみ＝機能回帰リスクは無だが、当該チャンネルでの決済実走は不可）。本番/既存devチャンネルでは既許可。
+- **CI**（firebase-hosting-dev.yml / merge）の build に astro build を反映（Node22必須）。
+- **`feat/astro-migration` → `dev` マージ** と **本番リリース** は、上記を踏まえ**ユーザー明示指示**で。
+- 内容: feed本文の編集プレースホルダ（`〔要撮影〕`等）を magazine 側で確定。
 
 ### 内容メモ（magazine側の担当）
 - feed本文に編集プレースホルダ（`〔要撮影: …〕`『要確認・編集: …』）が残存。公開前に magazine 側で確定が必要。
