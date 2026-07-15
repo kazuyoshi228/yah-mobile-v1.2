@@ -1,9 +1,16 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { usePurchaseFlow, usePurchaseSession, usePurchaseCheckoutCtx } from "../context";
+import { ga4Event, ga4Item } from "@/lib/ga4";
 
 export function Step4Payment() {
   const { t } = useTranslation();
   const { currentOpt, drawerDays, setStep } = usePurchaseFlow();
+  // GA4: 決済ステップ到達
+  useEffect(() => {
+    if (currentOpt) ga4Event("add_payment_info", { value: currentOpt.priceJpy, currency: "JPY", items: [ga4Item(currentOpt)] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { AVAILABLE_CURRENCIES, currency, setCurrency, formatPrice } = usePurchaseSession();
   const {
     termsConsented, setTermsConsented, termsConsentError, setTermsConsentError,

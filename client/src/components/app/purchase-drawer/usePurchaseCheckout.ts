@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useCallableMutation, CALLABLE } from "@/lib/callable";
+import { getGaClientId } from "@/lib/ga4";
 import { trackEvent } from "@/lib/analytics";
 import { getFirebaseDb } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -33,6 +34,7 @@ export function usePurchaseCheckout(currentOpt: PlanOption | null, user: Checkou
     marketingConsented: boolean;
     timezone?: string;
     language?: string;
+    gaClientId?: string | null;
   }, { checkoutUrl: string; orderId: string }>(CALLABLE.ordersInitCheckout);
 
   const handlePurchase = useCallback(async () => {
@@ -53,6 +55,7 @@ export function usePurchaseCheckout(currentOpt: PlanOption | null, user: Checkou
 
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const gaClientId = await getGaClientId(); // GA4のclient_id（サーバーpurchaseのセッション縫合用・取れなければnull）
       const res = await initCheckout.mutateAsync({
         bappyPlanId: currentOpt.bappyPlanId || currentOpt.planId,
         origin: window.location.origin,
@@ -61,6 +64,7 @@ export function usePurchaseCheckout(currentOpt: PlanOption | null, user: Checkou
         marketingConsented,
         timezone,
         language: i18n.language,
+        gaClientId,
       });
 
       if (res.checkoutUrl) {

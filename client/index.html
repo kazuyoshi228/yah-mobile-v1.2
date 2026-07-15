@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>yah.mobile — Japan eSIM for Travelers</title>
+    <!-- Google Analytics 4 (G-DVVQ3D5M6Z) + Consent Mode v2 (design_ga4_analytics.md)。
+         既定は全 denied（広告系は不使用）。analytics_storage は Cookie 同意で granted に更新。
+         denied 時は Cookie なしの匿名 ping で訪問者全体のファネルを計測する。 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DVVQ3D5M6Z"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied', wait_for_update: 500
+      });
+      // 既に Cookie 同意済みなら即 granted（起動時同期）
+      try {
+        var c = JSON.parse(localStorage.getItem('yah_cookie_consent') || 'null');
+        if (c && c.value === 'accepted' && c.version === '1') {
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+        }
+      } catch (e) {}
+      gtag('config', 'G-DVVQ3D5M6Z', { anonymize_ip: true });
+    </script>
     <!-- Custom Fonts: National2 Medium (タイトル) + National2 Regular (コピー) -->
     <!-- Preload critical fonts to reduce render-blocking -->
     <link rel="preload" href="https://storage.googleapis.com/yah-mobile-v1-3ed24.firebasestorage.app/assets/fonts/National2-Regular.otf" as="font" type="font/otf" crossorigin="anonymous" />

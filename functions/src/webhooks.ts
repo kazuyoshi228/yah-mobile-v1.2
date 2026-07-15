@@ -1,4 +1,5 @@
 import * as logger from "firebase-functions/logger";
+import { sendGa4Purchase } from "./ga4";
 /**
  * functions/src/webhooks.ts — Unified external server callbacks / Stripe Webhook handlers
  */
@@ -15,6 +16,7 @@ import {
   forgeApiKey,
   slackWebhookUrl,
   ownerEmail,
+  ga4MpApiSecret,
 } from "./secrets";
 
 import {
@@ -39,7 +41,7 @@ export const stripeWebhook = onRequest(
   {
     region: "asia-northeast1",
     timeoutSeconds: 120,
-    secrets: [stripeSecretKey, stripeWebhookSecret, omaxClientId, omaxClientSecret, gmailUser, gmailPass, forgeApiKey, slackWebhookUrl, ownerEmail, esimAccessCode, esimSecretKey],
+    secrets: [stripeSecretKey, stripeWebhookSecret, omaxClientId, omaxClientSecret, gmailUser, gmailPass, forgeApiKey, slackWebhookUrl, ownerEmail, esimAccessCode, esimSecretKey, ga4MpApiSecret],
   },
   async (req, res) => {
     if (req.method !== "POST") {
@@ -342,6 +344,14 @@ async function fulfillEsim(orderData: FsOrder) {
     }
 
     logger.info(`[fulfillEsim] eSIM fulfilled for order: ${orderId}`);
+    // GA4: 購入完了をサーバー送信（best-effort・発券には影響させない）
+    await sendGa4Purchase({
+      orderId: orderId ?? "",
+      amountJpy: orderData.amountJpy,
+      planName: orderData.planName,
+      bappyPlanId: orderData.bappyPlanId,
+      gaClientId: orderData.gaClientId,
+    });
   } catch (err) {
     logger.error(`[fulfillEsim] eSIM fulfillment failed for order ${orderId}:`, err);
     await updateOrder(orderId, { status: "pending_retry" });

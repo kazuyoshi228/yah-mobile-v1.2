@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { activeInitialPlansQuery, latestCurrencyRatesQuery } from "@/lib/queries";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { trackEvent } from "@/lib/analytics";
+import { ga4Event, ga4Item } from "@/lib/ga4";
 import FadeIn from "./FadeIn";
 import { FsPlan } from "../../../../shared/types";
 import {
@@ -51,9 +52,26 @@ export default function PlansSection({ onSelectPlan }: PlansSectionProps) {
     [dbPlans]
   );
 
+  // GA4: プランセクションが初回ビューインしたら view_item_list（1回のみ）
+  const viewedRef = useRef(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!sectionRef.current || flatPlans.length === 0) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting && !viewedRef.current) {
+        viewedRef.current = true;
+        ga4Event("view_item_list", { item_list_id: "plans", items: flatPlans.map(ga4Item) });
+        io.disconnect();
+      }
+    }, { threshold: 0.3 });
+    io.observe(sectionRef.current);
+    return () => io.disconnect();
+  }, [flatPlans]);
+
   const handleSelect = (p: FlatPlanOption) => {
     setSelected(p);
     trackEvent("plan_card_click", { days: p.days, gb: p.gb });
+    ga4Event("select_item", { item_list_id: "plans", items: [ga4Item(p)] });
   };
 
   const formatPrice = (priceJpy: number) => {
@@ -70,7 +88,7 @@ export default function PlansSection({ onSelectPlan }: PlansSectionProps) {
   };
 
   return (
-    <section id="plans" className="py-24 lg:py-36 bg-[#F7F7F7]">
+    <section id="plans" ref={sectionRef} className="py-24 lg:py-36 bg-[#F7F7F7]">
       <div className="container">
         <FadeIn>
           <p className="text-label text-black/35 mb-3">{t("plans.sectionLabel")}</p>

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { LogIn, CheckCircle2 } from "lucide-react";
 import { usePurchaseFlow, usePurchaseSession } from "../context";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
+import { ga4Event } from "@/lib/ga4";
 
 export function Step3Login() {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ export function Step3Login() {
   // 最短動線v2(b): ログイン済み/ログイン成功時は自動で決済ステップへ前進（Continueタップを廃止）。
   // Payment の back は 0(プラン) に向くためループしない。
   useEffect(() => {
-    if (!loading && isAuthenticated) setStep(2);
+    if (!loading && isAuthenticated) { ga4Event("login", { method: "google" }); setStep(2); }
   }, [loading, isAuthenticated, setStep]);
 
   // ログイン往復で選択プランが失われないよう、plan/days/gb を redirect URL に含める

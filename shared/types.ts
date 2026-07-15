@@ -101,6 +101,7 @@ export interface FsOrder {
   purchaseCity?: string | null;
   purchaseTimezone?: string | null;
   planName?: string | null;
+  gaClientId?: string | null;
   esimLinkUuid?: string | null;
   orderType?: string | null;
   /** 発行プロバイダ（柱2）。未設定は "bappy" 互換。新規販売は "esimaccess"。 */

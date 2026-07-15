@@ -22,6 +22,7 @@ export const esimSecretKey = defineSecret("ESIMACCESS_SECRET_KEY");
 export const esimaccessWebhookToken = defineSecret("ESIMACCESS_WEBHOOK_TOKEN");
 
 // メール送信（Gmail）
+export const ga4MpApiSecret = defineSecret("GA4_MP_API_SECRET");
 export const gmailUser = defineSecret("GMAIL_USER");
 export const gmailPass = defineSecret("GMAIL_PASS");
 

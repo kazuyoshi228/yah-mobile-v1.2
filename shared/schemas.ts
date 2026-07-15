@@ -58,6 +58,7 @@ export const OrdersInitCheckoutInput = z.object({
   marketingConsented: z.boolean(),
   timezone: z.string().max(100).nullish(),
   language: z.string().max(20).nullish(), // 購入時のUI言語（i18n.language）。返金/通知メールの言語判定に使う。
+  gaClientId: z.string().max(64).nullish(), // GA4 client_id（サーバーpurchaseのセッション縫合用）
 });
 
 export const OrdersInitTopupCheckoutInput = z.object({

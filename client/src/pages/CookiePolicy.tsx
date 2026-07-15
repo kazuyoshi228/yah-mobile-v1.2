@@ -27,7 +27,7 @@ const cookies = [
     canOptOut: "No — required to remember your choice",
   },
   {
-    category: "Analytics",
+    category: "Analytics We use Google Analytics 4 (cookies such as _ga) with Consent Mode; these are set only after you accept cookies.",
     name: "Analytics",
     purpose: "Collects anonymised usage data (page views, session duration, referral source) to help us improve the service.",
     duration: "Up to 26 months",

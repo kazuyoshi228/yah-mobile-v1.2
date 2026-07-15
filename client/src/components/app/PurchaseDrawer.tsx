@@ -11,7 +11,7 @@
  *
  * Callable Functions: ordersInitCheckout / userUpdateProfile / EmbeddedCheckout を廃止
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -34,6 +34,7 @@ import {
   groupPlansByDays,
   parsePlanId,
 } from "./types";
+import { ga4Event, ga4Item } from "@/lib/ga4";
 import { useCurrency } from "./purchase-drawer/useCurrency";
 import { usePurchaseCheckout } from "./purchase-drawer/usePurchaseCheckout";
 import {
@@ -184,6 +185,17 @@ export default function PurchaseDrawer({ open, onOpenChange, initialPlanId, init
   const currentOpt = drawerGb
     ? (planOptions[drawerDays] ?? []).find((o: PlanOption) => o.gb === drawerGb)
     : null;
+
+  // GA4: ドロワーが開いたら begin_checkout（open の立ち上がりで1回）。プラン既知なら value/items 付き。
+  const beginFiredRef = useRef(false);
+  useEffect(() => {
+    if (!open) { beginFiredRef.current = false; return; }
+    if (beginFiredRef.current) return;
+    beginFiredRef.current = true;
+    ga4Event("begin_checkout", currentOpt
+      ? { value: currentOpt.priceJpy, currency: "JPY", items: [ga4Item(currentOpt)] }
+      : {});
+  }, [open, currentOpt]);
 
   // 同意状態＋決済処理（ordersInitCheckout→リダイレクト）を集約
   const {

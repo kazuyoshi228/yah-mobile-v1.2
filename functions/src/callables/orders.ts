@@ -114,7 +114,7 @@ export const ordersInitCheckout = onCall(
     // 2. 入力バリデーション
     const parsed = OrdersInitCheckoutInput.safeParse(request.data ?? {});
     if (!parsed.success) throw zodError(parsed.error.message);
-    const { bappyPlanId, origin, termsConsented, privacyConsented, marketingConsented, timezone, language } = parsed.data;
+    const { bappyPlanId, origin, termsConsented, privacyConsented, marketingConsented, timezone, language, gaClientId } = parsed.data;
 
     // 3. プラン取得・検証（Firestoreから直接）
     const plansSnap = await db.collection("plans")
@@ -151,6 +151,7 @@ export const ordersInitCheckout = onCall(
       termsConsented,
       privacyConsented,
       marketingConsented,
+      gaClientId: gaClientId ?? null, // GA4 purchase をこの client_id で送りセッション縫合
       createdAt: now,
       updatedAt: now,
     });

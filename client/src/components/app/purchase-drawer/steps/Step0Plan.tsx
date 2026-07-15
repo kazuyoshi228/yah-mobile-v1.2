@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { DrawerClose } from "@/components/ui/drawer";
 import { usePurchaseFlow } from "../context";
+import { ga4Event, ga4Item } from "@/lib/ga4";
 import { flattenPlanOptions } from "../../types";
 
 /**
@@ -49,7 +50,7 @@ export function Step0Plan() {
         {flatPlans.map((p) => (
           <button
             key={p.planId}
-            onClick={() => { setDrawerDays(p.days); setDrawerGb(p.gb); setStep(1); }}
+            onClick={() => { ga4Event("select_item", { item_list_id: "drawer_plans", items: [ga4Item(p)] }); setDrawerDays(p.days); setDrawerGb(p.gb); setStep(1); }}
             className="relative text-left bg-white p-5 transition-colors duration-150 hover:bg-[#F7F7F7] active:scale-[0.98] flex flex-col items-start"
           >
             {/* POPULAR はカード左上に重ねる外出しバッジ（全カードの行を揃える） */}
