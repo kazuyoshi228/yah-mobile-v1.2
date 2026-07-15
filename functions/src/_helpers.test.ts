@@ -9,6 +9,8 @@ vi.mock("./db", () => {
     getUserByUid: vi.fn(),
     upsertUserWithRole: vi.fn(),
     isEmailAllowed: vi.fn(),
+    // 既存テストは招待制ONの挙動を検証しているため、既定はゲートON
+    isInviteGateEnabled: vi.fn().mockResolvedValue(true),
   };
 });
 
@@ -39,6 +41,15 @@ describe("_helpers authorization", () => {
       await expect(requireAuth(req)).rejects.toThrowError(
         new HttpsError("permission-denied", "email-not-allowed")
       );
+    });
+
+    it("招待制ゲート解放時（GA）は非招待メールでも通過する", async () => {
+      (db.isInviteGateEnabled as any).mockResolvedValueOnce(false);
+      (db.isEmailAllowed as any).mockResolvedValue(false); // 非招待でも
+      (db.getUserByUid as any).mockResolvedValue({ uid: "u1", role: "user", status: "active" });
+      const request = { auth: { uid: "u1", token: { email: "anyone@example.com" } } } as any;
+      await expect(requireAuth(request)).resolves.toBeTruthy();
+      expect(db.isEmailAllowed).not.toHaveBeenCalled(); // ホワイトリスト照会自体をスキップ
     });
 
     it("should throw permission-denied if the email claim is missing (fail-closed)", async () => {

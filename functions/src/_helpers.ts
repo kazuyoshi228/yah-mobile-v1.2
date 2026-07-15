@@ -4,7 +4,7 @@ import * as logger from "firebase-functions/logger";
  */
 import { HttpsError } from "firebase-functions/v2/https";
 import type { CallableRequest } from "firebase-functions/v2/https";
-import { getUserByUid, upsertUserWithRole, isEmailAllowed } from "./db";
+import { getUserByUid, upsertUserWithRole, isEmailAllowed, isInviteGateEnabled } from "./db";
 import type { FsUser } from "./db";
 import { ENV } from "./env";
 
@@ -28,14 +28,18 @@ export async function requireAuth(request: CallableRequest): Promise<AuthContext
   // 1. Email Whitelist Validation (Invite-Only)
   // Fail-closed: emailクレームを持たない認証方式（電話・匿名・カスタムトークン等）を
   // ホワイトリスト検証なしで通過させないため、email未設定は明示的に拒否する。
+  // GA(1.0-1): 招待制はキルスイッチ化。通常時（system_config/access 無し/false）は
+  // 全ユーザー通過。緊急時に inviteGateEnabled=true を書けば即・招待制へ戻る。
   const isOwner = !!email && email.toLowerCase() === ENV.ownerEmail;
   if (!isOwner) {
     if (!email) {
       throw new HttpsError("permission-denied", "email-required");
     }
-    const isAllowed = await isEmailAllowed(email);
-    if (!isAllowed) {
-      throw new HttpsError("permission-denied", "email-not-allowed");
+    if (await isInviteGateEnabled()) {
+      const isAllowed = await isEmailAllowed(email);
+      if (!isAllowed) {
+        throw new HttpsError("permission-denied", "email-not-allowed");
+      }
     }
   }
 
