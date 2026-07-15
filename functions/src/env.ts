@@ -39,7 +39,6 @@ export const ENV = {
 
   // CORS allowed origins
   allowedOrigins: [
-    "https://yah-esim-zw9tdb8p.manus.space",
     "https://yah.mobi",
     "http://localhost:3000",
     "http://localhost:5173",

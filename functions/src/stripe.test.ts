@@ -6,7 +6,6 @@ describe("stripe", () => {
     it("should return the original origin if it is in ALLOWED_ORIGINS", () => {
       expect(validateOrigin("https://yah.mobi")).toBe("https://yah.mobi");
       expect(validateOrigin("https://www.yah.mobi")).toBe("https://www.yah.mobi");
-      expect(validateOrigin("https://yah-esim-zw9tdb8p.manus.space")).toBe("https://yah-esim-zw9tdb8p.manus.space");
     });
 
     it("should strip paths and queries from valid origins", () => {

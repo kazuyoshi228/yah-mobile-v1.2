@@ -17,7 +17,6 @@ import Stripe from "stripe";
 const ALLOWED_ORIGINS = [
   "https://yah.mobi",
   "https://www.yah.mobi",
-  "https://yah-esim-zw9tdb8p.manus.space",
 ];
 
 /**
