@@ -48,6 +48,26 @@ const LANGS = alternates.map((a) => ({
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google Analytics 4 (G-DVVQ3D5M6Z) + Consent Mode v2。SPA(client/index.html)と同一設定＝同一プロパティで
+         「ガイド閲覧→/app→購入」ファネルが繋がる。既定 denied（Cookieレス匿名ping）／同意は同一ドメインの
+         localStorage['yah_cookie_consent'] を共有（アプリで同意済みなら即 granted）。 -->
+    <script async is:inline src="https://www.googletagmanager.com/gtag/js?id=G-DVVQ3D5M6Z"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied', wait_for_update: 500
+      });
+      try {
+        var c = JSON.parse(localStorage.getItem('yah_cookie_consent') || 'null');
+        if (c && c.value === 'accepted' && c.version === '1') {
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+        }
+      } catch (e) {}
+      gtag('config', 'G-DVVQ3D5M6Z', { anonymize_ip: true });
+    </script>
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     <link rel="canonical" href={canonical} />
