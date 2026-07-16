@@ -214,6 +214,22 @@ const NAV = [
       .lead-cta-btn:hover { opacity: 0.9; }
 
       .article-body :first-child { margin-top: 0; }
+      .article-body img { max-width: 100%; height: auto; border-radius: 4px; }
+
+      /* 実地レポート（一次データ・E-E-A-T/GEOの核）— 本文直後に緑枠 */
+      .field-report {
+        background: color-mix(in srgb, #16a34a 6%, var(--brand-bg));
+        border: 1px solid color-mix(in srgb, #16a34a 26%, transparent);
+        border-left: 3px solid #16a34a;
+        padding: 1rem 1.25rem 0.4rem; margin: 0 0 2rem;
+      }
+      .fr-title { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; font-size: 1.1rem; font-weight: 500; margin: 0 0 0.75rem; }
+      .fr-badge {
+        font-size: 0.66rem; font-weight: 500; letter-spacing: 0.06em;
+        padding: 0.15rem 0.5rem; border-radius: 999px; background: #16a34a; color: #fff;
+      }
+      .fr-badge.fr-assumed { background: var(--brand-muted); }
+      .fr-body :last-child { margin-bottom: 0.6rem; }
 
       /* ── 表（ブランド: 白セル＋細罫線・角0・National2。ライト/ダーク両対応） ── */
       table.plans, .article-body table {

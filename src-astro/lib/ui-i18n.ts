@@ -27,6 +27,9 @@ export interface UiStrings {
   ctaButton: string;
   compareTitle: string;
   bestValue: string;
+  fieldReportTitle: string;
+  fieldReportField: string;
+  fieldReportAssumed: string;
   /** langロケールでの表示名（言語切替リンクのラベル用） */
   nativeName: string;
 }
@@ -54,6 +57,9 @@ export const UI: Record<string, UiStrings> = {
     ctaButton: "プランを見る",
     compareTitle: "他社eSIMとの料金比較",
     bestValue: "BEST VALUE",
+    fieldReportTitle: "実地レポート",
+    fieldReportField: "実測",
+    fieldReportAssumed: "編集部の想定・実測前",
     nativeName: "日本語",
   },
   // en は未localized言語のフォールバック（SPA nav の英語ラベルに準拠）
@@ -79,6 +85,9 @@ export const UI: Record<string, UiStrings> = {
     ctaButton: "View plans",
     compareTitle: "How we compare",
     bestValue: "BEST VALUE",
+    fieldReportTitle: "Field report",
+    fieldReportField: "measured",
+    fieldReportAssumed: "editorial estimate (pre-measurement)",
     nativeName: "English",
   },
 };

@@ -22,6 +22,8 @@ export interface EsimGuide {
   languages: string[];
   priceBindings?: string[]; // plan docID（= providerPlanId / packageCode）
   showCompetitorTable?: boolean;
+  fieldReport?: string | null; // 実地レポート（一次データ・Markdown・画像含む）。空ならnull
+  fieldReportMode?: "field" | "assumed" | null; // "field"=実測 / "assumed"=想定・実測前
   canonical: string; // 例 /esim/ja/esim-chatgpt
   confirmedDate?: string;
   publishedAt?: number;

@@ -1,29 +1,33 @@
 ---
 /**
- * /esim/[lang]/[slug] — GEO静的ガイド（design_astro_geo_p1.md）
- * 描画順: directAnswer → 本文(MD→HTML) → プラン表(SSOT) → FAQ。
- * 購入は既存SPAへ 1遷移 deep-link（/app?open=true&plan=<docID>）。P1では島化しない。
+ * /guides/[section]/[lang]/[slug] — GEO静的ガイド（作業指示書のURL規約 /guides/{section}/{lang}/{slug}）
+ * 描画順: directAnswer(Summary)→CTA→本文(MD)→実地レポート→プラン表(SSOT)→競合表(SSOT)→FAQ→CTA。
+ * 価格の数値は feed に無く、Firestore(plans/competitorPlans) から焼く。購入は /app?open=true&plan= へdeep-link。
  */
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getEsimGuides, stripTitlePrefix, type EsimGuide } from "../../../lib/esimGuides";
-import { getPlansByBindings, type Plan } from "../../../lib/plans";
-import { getCompetitorTable, type CompareTable } from "../../../lib/competitor";
-import { renderMarkdown } from "../../../lib/markdown";
-import { getUi, formatAsOf, formatCompareNote, formatUpdated } from "../../../lib/ui-i18n";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import { getEsimGuides, stripTitlePrefix, type EsimGuide } from "../../../../lib/esimGuides";
+import { getPlansByBindings, type Plan } from "../../../../lib/plans";
+import { getCompetitorTable, type CompareTable } from "../../../../lib/competitor";
+import { renderMarkdown } from "../../../../lib/markdown";
+import { getUi, formatAsOf, formatCompareNote, formatUpdated } from "../../../../lib/ui-i18n";
 
 export async function getStaticPaths() {
   const guides = await getEsimGuides();
-  const paths: { params: { lang: string; slug: string }; props: { guide: EsimGuide; lang: string } }[] = [];
+  const paths: {
+    params: { section: string; lang: string; slug: string };
+    props: { guide: EsimGuide; lang: string; section: string };
+  }[] = [];
   for (const guide of guides) {
+    const section = guide.categorySlug || "esim";
     for (const lang of guide.languages ?? []) {
       if (!guide.translations?.[lang]) continue;
-      paths.push({ params: { lang, slug: guide.slug }, props: { guide, lang } });
+      paths.push({ params: { section, lang, slug: guide.slug }, props: { guide, lang, section } });
     }
   }
   return paths;
 }
 
-const { guide, lang } = Astro.props as { guide: EsimGuide; lang: string };
+const { guide, lang, section } = Astro.props as { guide: EsimGuide; lang: string; section: string };
 const t = guide.translations[lang];
 const ui = getUi(lang);
 
@@ -31,6 +35,9 @@ const displayTitle = stripTitlePrefix(t.title);
 const metaTitle = t.metaTitle || displayTitle;
 const metaDescription = t.metaDescription || t.excerpt || "";
 const bodyHtml = renderMarkdown(t.body || "");
+
+// 実地レポート（一次データ）。非nullなら本文直後に緑枠で描画（画像込み）。
+const fieldReportHtml = guide.fieldReport ? renderMarkdown(guide.fieldReport) : null;
 
 // SSOT からプラン表を焼く
 const plans: Plan[] = await getPlansByBindings(guide.priceBindings ?? []);
@@ -43,14 +50,11 @@ const competitor: CompareTable | null = guide.showCompetitorTable === true ? awa
 const asOfLabel = formatAsOf(lang, guide.confirmedDate);
 const compareNote = formatCompareNote(lang, guide.confirmedDate);
 
-// canonical(絶対) と hreflang
+// canonical(絶対) と hreflang — /guides/{section}/{lang}/{slug}（ヘッドが所有・feedのcanonicalは参照しない）
 const site = Astro.site ?? new URL("https://yah.mobi");
-const canonicalPath = guide.canonical || `/esim/${lang}/${guide.slug}`;
-const canonical = new URL(canonicalPath, site).href;
-const alternates = (guide.languages ?? []).map((l) => ({
-  lang: l,
-  href: new URL(`/esim/${l}/${guide.slug}`, site).href,
-}));
+const guidePath = (l: string) => `/guides/${section}/${l}/${guide.slug}`;
+const canonical = new URL(guidePath(lang), site).href;
+const alternates = (guide.languages ?? []).map((l) => ({ lang: l, href: new URL(guidePath(l), site).href }));
 
 // deep-link（既存SPAドロワー起動）
 const buyHref = (planId: string) => `/app?open=true&plan=${encodeURIComponent(planId)}`;
@@ -145,6 +149,17 @@ const jsonLd = [articleLd, ...(faqLd ? [faqLd] : [])];
     )}
 
     <div class="article-body" set:html={bodyHtml} />
+
+    {fieldReportHtml && (
+      <section class="field-report" aria-label={ui.fieldReportTitle}>
+        <h2 class="fr-title">
+          {ui.fieldReportTitle}
+          {guide.fieldReportMode === "field" && <span class="fr-badge">{ui.fieldReportField}</span>}
+          {guide.fieldReportMode === "assumed" && <span class="fr-badge fr-assumed">{ui.fieldReportAssumed}</span>}
+        </h2>
+        <div class="fr-body article-body" set:html={fieldReportHtml} />
+      </section>
+    )}
 
     {plans.length > 0 && (
       <section aria-label={ui.plansTitle} class="plans-section">

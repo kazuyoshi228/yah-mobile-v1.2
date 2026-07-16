@@ -19,9 +19,9 @@ const pwaPlugin = VitePWA({
     cleanupOutdatedCaches: true,
     // Critical: never let the SPA navigation fallback hijack server routes.
     // OAuth callbacks and all /api/* requests must reach the backend, not index.html.
-    // /esim/** は Astro 静的ページ（GEO）。SW導入済みのリピーターでも SPA殻を返さず
+    // /guides/** は Astro 静的ページ（GEO）。SW導入済みのリピーターでも SPA殻を返さず
     // 実HTMLをネットワークから取得させる（同一URLを両器から出さない）。
-    navigateFallbackDenylist: [/^\/api\//, /^\/esim(\/|$)/],
+    navigateFallbackDenylist: [/^\/api\//, /^\/guides(\/|$)/],
     runtimeCaching: [
       {
         // ナビゲーション（HTML）は常にネットワーク優先。古いHTMLをキャッシュ配信しない。
