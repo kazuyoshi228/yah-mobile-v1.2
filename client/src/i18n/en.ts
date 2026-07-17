@@ -108,8 +108,8 @@ const en = {
     items: [
       { q: "What is an eSIM?", a: "An eSIM (embedded SIM) is a digital SIM built into your device. There's no physical card to swap — just scan a QR code or tap a button to start using mobile data." },
       { q: "When should I set it up?", a: "We recommend installing your eSIM on Wi-Fi before you depart. Once installed, it connects automatically when you arrive in Japan — no setup needed at the airport." },
-      { q: "When does my data plan start?", a: "Your plan validity period begins from the moment your eSIM first connects to the network in Japan. Days do not count while you are outside Japan." },
-      { q: "Is there a deadline to install my eSIM?", a: "Yes. Install your eSIM within about 6 months of purchase — the exact \"Install by\" date is shown in My Page and in your confirmation email. If the eSIM is left unused past that date, it expires. Your data validity (e.g. 7 days) only starts when you activate it in Japan." },
+      { q: "When does my data plan start?", a: "Your plan's validity starts the moment you activate the eSIM (turn the line on) — not at purchase or installation. Install before you fly, then activate when you're ready to start using data." },
+      { q: "Is there a deadline to install my eSIM?", a: "Yes. Install your eSIM within about 6 months of purchase — the exact \"Install by\" date is shown in My Page and in your confirmation email. If the eSIM is left unused past that date, it expires. Your data validity (e.g. 7 days) only starts when you activate the eSIM." },
       { q: "Can I delete and reinstall my eSIM?", a: "Before activation: if you delete the eSIM, you can reinstall it by scanning the same QR code again — it's always available on My Page. After activation (once used): a deleted eSIM usually cannot be recovered and may require a new purchase, and an eSIM cannot be transferred to another device. So please avoid deleting an active eSIM. If you deleted an activated eSIM or are switching phones, contact support with your order number and we'll check your options." },
       { q: "Is my device compatible?", a: "Compatible devices include iPhone XS and later, Google Pixel 3 and later, and Samsung Galaxy S20 and later. Your device must also be SIM-unlocked." },
       { q: "What happens when I run out of data?", a: "You can top up with additional data anytime from the app or your account page. You'll also receive an email alert when your data is running low." },
@@ -120,7 +120,7 @@ const en = {
       { q: "How do I receive my eSIM?", a: "After purchase, your QR code is delivered instantly to your registered email and is also available in your account under My Orders. No waiting, no shipping." },
       { q: "What if I need help setting it up?", a: "24/7 chat support can guide you through installation step by step — it usually takes under 3 minutes." },
       { q: "Is there a speed limit?", a: "No artificial speed caps from us. Your eSIM runs on high-speed 4G LTE. Actual speeds vary by location, time of day, network conditions and your device." },
-      { q: "Can I use tethering (hotspot)?", a: "Yes. Tethering and mobile hotspot are supported. You can share your Japan data connection with laptops, tablets, or other devices." },
+      { q: "Can I use tethering (hotspot)?", a: "No. Tethering and mobile hotspot are not supported on yah.mobile plans. Please use the data directly on the device where the eSIM is installed." },
     ],
   },
   chatSupport: {
@@ -311,7 +311,7 @@ const en = {
     preparingEsim: "Preparing your eSIM...",
     esimReadyTitle: "Your eSIM is ready.",
     esimReadyDesc: "Scan the QR code below to install your eSIM. You can also find it anytime in My eSIM.",
-    installByNote: "Install by {{date}} — unused eSIMs expire after this date. Your data validity starts when you activate in Japan.",
+    installByNote: "Install by {{date}} — unused eSIMs expire after this date. Your data validity starts when you activate the eSIM.",
     esimIccid: "ICCID",
     esimActivateIos: "Activate on iPhone",
     esimActivateAndroid: "Activate on Android",

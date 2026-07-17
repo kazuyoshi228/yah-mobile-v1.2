@@ -139,7 +139,9 @@ export async function generateLlmsTxt(): Promise<string> {
 - **Service type**: Japan eSIM (embedded SIM) for international travelers
 - **Coverage**: All of Japan (NTT docomo network — 4G/LTE)
 - **Delivery**: Instant QR code via email after purchase
-- **Activation**: Scan QR code before or after arriving in Japan
+- **Setup**: Scan the QR code to install — before or after arriving in Japan
+- **Validity**: Starts when the eSIM is activated (line turned on) — not at purchase or installation
+- **Tethering**: Not supported (data is for the device where the eSIM is installed)
 - **Refund policy**: eSIM is a digital product. Once payment is completed, cancellations and refunds are not available, except where we are unable to deliver the eSIM or top-up due to a technical problem on our side (a system error or an upstream provider failure) — in that case the payment is refunded in full, automatically, to the original payment method. Customers confirm this policy via a checkbox before completing purchase.
 - **Support**: Live chat available on the website
 - **Network**: NTT docomo — Japan's largest carrier, excellent nationwide coverage
@@ -178,8 +180,11 @@ An eSIM (embedded SIM) is a digital SIM card built into your smartphone. Instead
 **Which devices are compatible?**
 iPhone XS (2018) and later models. Most Android flagships from 2019 onward (Samsung Galaxy S20+, Google Pixel 3a+, etc.). The device must be unlocked (not carrier-locked).
 
-**How do I activate the eSIM?**
+**How do I install the eSIM?**
 After purchase, you receive a QR code by email. Go to your phone's Settings → Cellular/Mobile → Add eSIM → Scan QR Code. You can do this before or after arriving in Japan.
+
+**When does my plan's validity start?**
+Validity starts the moment the eSIM is activated (the line is turned on) — not at purchase or installation. Install before departure, then activate when ready to start using data.
 
 **Can I keep my existing SIM?**
 Yes. The eSIM works alongside your existing physical SIM. You can switch between them in your phone settings.
@@ -191,7 +196,7 @@ Top-up plans are available. Contact support via live chat on the website.
 eSIM is a digital product. Once payment is completed, cancellations and refunds are not available. Customers confirm this no-refund policy via a checkbox before completing their purchase, as required under Japan's Act on Specified Commercial Transactions (Article 15-3). The only exception is when we are unable to deliver your eSIM or top-up due to a technical problem on our side — in that case we refund your payment in full, automatically, to your original payment method. If you have questions, please contact support via live chat before purchasing.
 
 **Can I use tethering (hotspot)?**
-Yes. Tethering and mobile hotspot are fully supported. You can share your Japan data connection with laptops, tablets, or other devices.
+No. Tethering and mobile hotspot are not supported on yah.mobile plans. Please use the data directly on the device where the eSIM is installed.
 
 **Which network does yah.mobile use?**
 NTT docomo (via IIJ) — Japan's largest mobile carrier with excellent 4G/LTE coverage across all major cities and rural areas.
