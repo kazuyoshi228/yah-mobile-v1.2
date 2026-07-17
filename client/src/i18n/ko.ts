@@ -89,6 +89,8 @@ const ko = {
     sectionLabel: "가격 비교",
     title: "타사와 비교해보세요.",
     subtitle: "주요 일본 eSIM 서비스의 '10GB / 30일' 요금제를 비교했습니다.",
+    checkSchedule: "매일 오전 9시(일본 시간)에 가격을 확인하며, 타사 가격이 바뀌면 표를 갱신합니다.",
+    lastUpdated: "최종 갱신: {{date}}.",
     bestValue: "최고 가성비",
     scroll: "스크롤",
     headers: {

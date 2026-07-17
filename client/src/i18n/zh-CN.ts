@@ -89,6 +89,8 @@ const zhCN = {
     sectionLabel: "价格对比",
     title: "我们的优势。",
     subtitle: "对比主要日本eSIM服务商的'10GB / 30天'套餐。",
+    checkSchedule: "我们每天上午9点（日本时间）核对价格，竞品价格有变动时即更新此表。",
+    lastUpdated: "最后更新：{{date}}。",
     bestValue: "最超值",
     scroll: "滑动查看",
     headers: {

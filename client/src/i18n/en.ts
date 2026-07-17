@@ -89,6 +89,8 @@ const en = {
     sectionLabel: "Price Comparison",
     title: "How we compare.",
     subtitle: "Comparing leading Japan-bound eSIM services on the same \"10GB / 30-day\" tier.",
+    checkSchedule: "We check the prices every day at 9:00 AM JST. The table is updated whenever a competitor's price changes.",
+    lastUpdated: "Last updated: {{date}}.",
     bestValue: "BEST VALUE",
     scroll: "Scroll",
     headers: {

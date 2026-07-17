@@ -117,6 +117,8 @@ const zhTW = {
     "sectionLabel": "價格比較",
     "title": "我們的優勢。",
     "subtitle": "以相同「10GB / 30 天」方案比較主要赴日 eSIM 服務商。",
+    "checkSchedule": "我們每天上午 9 點（日本時間）核對價格，他牌價格有變動時即更新此表。",
+    "lastUpdated": "最後更新：{{date}}。",
     "bestValue": "最超值",
     "scroll": "滑動查看",
     "headers": {

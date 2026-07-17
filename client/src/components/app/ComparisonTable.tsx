@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { doc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { useFirestoreDoc } from "@/hooks/useFirestoreCollection";
@@ -40,9 +41,12 @@ type RawTableDoc = {
     sortOrder?: number;
     cells?: Record<string, string>;
   }>;
+  /** 管理タブでの保存時刻（＝他社価格に変動があって表を更新した時刻）。 */
+  updatedAt?: number;
 };
 
 export default function ComparisonTable() {
+  const { t, i18n } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(true);
 
@@ -97,7 +101,20 @@ export default function ComparisonTable() {
     };
   }, [table.rows.length, table.columns.length]);
 
+  // 表の更新日。他社価格に変動が無い日は保存が走らないため、これは「最終確認日」ではなく
+  // 「最後に価格が動いて表を更新した日」。文言（checkSchedule）側でその関係を明示している。
+  // rawTable が無い間は FALLBACK 表示なので、日付は出さない。
+  const lastUpdated = rawTable?.updatedAt
+    ? new Date(rawTable.updatedAt).toLocaleDateString(i18n.language, {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
+
   return (
+    <>
     <div className="mt-12 relative">
       <div ref={scrollRef} className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
@@ -179,5 +196,11 @@ export default function ComparisonTable() {
         )}
       </AnimatePresence>
     </div>
+    {/* 毎日の価格確認と、表の更新日。景表法の打消し表示（AppPage の disclaimer）はこの下に続く。 */}
+    <p className="font-sans text-black/45 mt-4 text-[0.75rem] leading-[1.6]">
+      {t("priceComparison.checkSchedule")}
+      {lastUpdated && <> {t("priceComparison.lastUpdated", { date: lastUpdated })}</>}
+    </p>
+    </>
   );
 }
